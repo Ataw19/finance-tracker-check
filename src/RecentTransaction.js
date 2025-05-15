@@ -34,7 +34,7 @@ const Recent = ({ budgets, transactions, onRowsChange }) => {
 
   useEffect(() => {
     onRowsChange(rows);
-  }, [rows]); // Kirim rows setiap kali berubah
+  }, [rows, onRowsChange]); // Kirim rows setiap kali berubah
 
   return (
     <div className="mt-3 p-4 bg-none rounded shadow-md w-full bg-gray-200">
