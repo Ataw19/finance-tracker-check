@@ -26,7 +26,6 @@ function App() {
   const [selectedBudget, setSelectedBudget] = useState(null); // Data untuk edit
   const [showIconPicker, setShowIconPicker] = useState(false);
   const [selectedIcon, setSelectedIcon] = useState(null);
-  console.log("Icon saat ini:", selectedIcon);
   const [iconTargetId, setIconTargetId] = useState(null);
   const [selectedTab, setSelectedTab] = useState("Recent");
   
@@ -119,16 +118,21 @@ function App() {
   };
 
   useEffect(() => {
-    const updatedBudgets = budgets.map(budget => {
-      const totalUsed = transactions
-        .filter(tx => tx.category === budget.name)
-        .reduce((sum, tx) => sum + tx.amount, 0);
-  
-      return { ...budget, used: totalUsed };
-    });
-  
+  const updatedBudgets = budgets.map(budget => {
+    const totalUsed = transactions
+      .filter(tx => tx.category === budget.name)
+      .reduce((sum, tx) => sum + tx.amount, 0);
+
+    return { ...budget, used: totalUsed };
+  });
+
+  // Cek kalau ada perubahan yang beda baru update state
+  const isDifferent = updatedBudgets.some((b, i) => b.used !== budgets[i].used);
+
+  if (isDifferent) {
     setBudgets(updatedBudgets);
-  }, [transactions, budgets]);
+  }
+}, [transactions, budgets]);
 
   //Tampilan
   return (
@@ -187,7 +191,10 @@ function App() {
                             </div>
                             {showIconPicker && (
                               <IconPickerModal
-                                onSelect={handleIconSelect}
+                                onSelect={(icon) => {
+                                  console.log("Icon saat ini:", selectedIcon);
+                                  handleIconSelect(icon);
+                                }}
                                 onClose={() => setShowIconPicker(false)}
                               />
                             )}
