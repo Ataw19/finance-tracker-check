@@ -61,7 +61,13 @@ function FilterTransaksi({ budgets, onRowsChange, tab, transactions, setTransact
 
   return (
     <div className="mx-2">
-      {Object.keys(grouped).map((groupKey) => {
+      {Object.keys(grouped)
+        .sort((a, b) => {
+          const dateA = new Date(grouped[a][0].date);
+          const dateB = new Date(grouped[b][0].date);
+          return dateB - dateA; // dari terbaru ke terlama
+        })
+        .map((groupKey) => {
         const groupDate = grouped[groupKey][0]?.date;
         return (
           <div key={groupKey} className="mb-4">
