@@ -1,4 +1,3 @@
-import logo from './logo.svg';
 import './App.css';
 import React, { useEffect, useState } from "react";
 import ModalBudget from './ModalBudget';
@@ -8,11 +7,12 @@ import FilterTransaksi from './FilterTransaksi';
 
 function App() {
 
-  {/*Variabel*/}
+  //Variabel
   const [budgets, setBudgets] = useState([
-    { id: 1, name: "Makanan",budgets: 200,used : 100, icon:null },
-    { id: 2, name: "Transportasi",budgets: 400,used : 125, icon:null },
+    { id: 1, name: "Makanan",budgets: 2000000,used : 0, icon:null },
+    { id: 2, name: "Transportasi",budgets: 4000000,used : 0, icon:null },
   ]);
+
   const initialTransactions = [
     { id: 1, name: "Nasi Goreng", amount: 25000, category: "Makanan", date: "2025-05-09" },
     { id: 2, name: "Ojek", amount: 10000, category: "Transportasi", date: "2025-05-09" },
@@ -26,10 +26,11 @@ function App() {
   const [selectedBudget, setSelectedBudget] = useState(null); // Data untuk edit
   const [showIconPicker, setShowIconPicker] = useState(false);
   const [selectedIcon, setSelectedIcon] = useState(null);
+  console.log("Icon saat ini:", selectedIcon);
   const [iconTargetId, setIconTargetId] = useState(null);
   const [selectedTab, setSelectedTab] = useState("Recent");
-
-  {/*Fungsi atau Method*/}
+  
+  //Fungsi atau Method
   const handleTransactionsChange = (updatedRows) => {
     setTransactions(updatedRows);
   };
@@ -127,9 +128,9 @@ function App() {
     });
   
     setBudgets(updatedBudgets);
-  }, [transactions]);
+  }, [transactions, budgets]);
 
-  {/*Tampilan*/}
+  //Tampilan
   return (
     <div className="flex-col items-start justify-center min-h-screen bg-gray-200">
       {/* Tampilan Paling atas garis item */}
@@ -215,7 +216,7 @@ function App() {
                         </div>
                       </div>
                       <div className="text-[11px] mt-1 w-fit relative group inline-block cursor-pointer">
-                        ${item.budgets}
+                        Rp.{item.budgets}
                         <div className="absolute left-full top-1/2 ml-2 -translate-y-1/2
                             bg-gray-500 text-white text-[11px] px-2 py-1 rounded 
                             opacity-0 group-hover:opacity-100 transition-all duration-200 
