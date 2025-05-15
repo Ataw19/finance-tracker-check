@@ -64,12 +64,15 @@ const Recent = ({ budgets, transactions, onRowsChange }) => {
                   <CurrencyInput
                     name="amount"
                     value={row.amount}
-                    onValueChange={(value) => handleChange(row.id, "amount", value)}
+                    onValueChange={(value) => {
+                      const numericValue = value ? parseInt(value.replace(/\D/g, ""), 10) : 0;
+                      handleChange(row.id, "amount", numericValue);
+                    }}
                     prefix="Rp. "
                     decimalsLimit={0}
                     className="w-full bg-gray-200 outline-none"
                   />
-                </div>
+                                  </div>
               </td>
               <td className="border p-0 bg-gray-200 border-opacity-40 border-r-black border-b-black text-black/60">
                 <select
