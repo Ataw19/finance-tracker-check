@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import CurrencyInput from "react-currency-input-field";
+import { Trash } from "lucide-react";
+
 
 const Recent = ({ budgets, transactions, onRowsChange }) => {
   const [rows, setRows] = useState(transactions);
@@ -30,6 +32,12 @@ const Recent = ({ budgets, transactions, onRowsChange }) => {
       date: "",
     };
     setRows((prevRows) => [...prevRows, newRow]);
+  };
+
+  const handleDeleteRow = (id) => {
+  const updated = rows.filter((item) => item.id !== id);
+  setRows(updated);
+  onRowsChange(updated);
   };
 
   useEffect(() => {
@@ -103,6 +111,15 @@ const Recent = ({ budgets, transactions, onRowsChange }) => {
                   onChange={(e) => handleChange(row.id, "date", e.target.value)}
                   className="w-full outline-none bg-gray-200"
                 />
+              </td>
+              <td className="border">
+                <button
+                  className="ml-2 text-sm py-1"
+                  onClick={() => handleDeleteRow(row.id)}
+                  title="Hapus"
+                >
+                  <Trash className="w-3.5 h-3 text-black hover:text-gray-600" />
+                </button>
               </td>
             </tr>
           ))}
