@@ -27,17 +27,17 @@ const Recent = ({ budgets, transactions, onRowsChange }) => {
   };
 
   const handleAddRow = () => {
-    const newRow = {
-      id: Date.now(),
-      name: "",
-      amount: "",
-      category: "",
-      account: "",
-      date: "",
-    };
-    setRows((prevRows) => [...prevRows, newRow]);
+  const today = new Date().toISOString().slice(0, 10); // format yyyy-mm-dd
+  const newRow = {
+    id: Date.now(),
+    name: "",
+    amount: "",
+    category: "",
+    account: "",
+    date: today,
   };
-
+  setRows((prevRows) => [...prevRows, newRow]);
+};
   const handleDeleteRow = (id) => {
   const updated = rows.filter((item) => item.id !== id);
   setRows(updated);
