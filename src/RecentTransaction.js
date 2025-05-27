@@ -14,6 +14,10 @@ const Recent = ({ budgets, transactions, onRowsChange }) => {
   const displayedRows = sortedTransactions.slice(0, currentPage * rowsPerPage);
   const hasMoreRows = sortedTransactions.length > displayedRows.length;
 
+  const getBudgetOptions = (date) => {
+  const monthKey = new Date(date).toISOString().slice(0, 7); // "YYYY-MM"
+  return budgets[monthKey] || [];
+};
   const handleChange = (id, field, value) => {
     setRows((prevRows) =>
       prevRows.map((row) =>
@@ -89,7 +93,7 @@ const Recent = ({ budgets, transactions, onRowsChange }) => {
                   className="w-full outline-none bg-gray-200"
                 >
                   <option value="">Pilih</option>
-                  {budgets.map((b) => (
+                  {getBudgetOptions(row.date).map((b) => (
                     <option key={b.id} value={b.name}>
                       {b.name}
                     </option>

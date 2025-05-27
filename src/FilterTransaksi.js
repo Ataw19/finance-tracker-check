@@ -19,6 +19,11 @@ function FilterTransaksi({ budgets, onRowsChange, tab, transactions, setTransact
     return "Semua Transaksi";
   };
 
+  const getBudgetOptions = (date) => {
+  const monthKey = new Date(date).toISOString().slice(0, 7); // "YYYY-MM"
+  return budgets[monthKey] || [];
+  };
+
   const groupBy = (data) => {
     const grouped = {};
     data.forEach((item) => {
@@ -144,7 +149,7 @@ function FilterTransaksi({ budgets, onRowsChange, tab, transactions, setTransact
                               className="w-full outline-none bg-transparent"
                             >
                               <option value="">Pilih</option>
-                              {budgets.map((b) => (
+                              {getBudgetOptions(row.date).map((b) => (
                                 <option key={b.id} value={b.name}>
                                   {b.name}
                                 </option>

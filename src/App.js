@@ -1,17 +1,24 @@
 import './App.css';
+import ModalAddMonth from "./ModalAddMonth";
 import React, { useEffect, useState } from "react";
 import ModalBudget from './ModalBudget';
 import IconPickerModal from "./IconPickerModal";
 import Recent from './RecentTransaction';
 import FilterTransaksi from './FilterTransaksi';
-
+import ChartKeuangan from './ChartKeuangan';
 function App() {
 
   //Variabel
-  const [budgets, setBudgets] = useState([
-    { id: 1, name: "Makanan",budgets: 2000000,used : 0, icon:null },
-    { id: 2, name: "Transportasi",budgets: 4000000,used : 0, icon:null },
-  ]);
+  const [budgetsByMonth, setBudgetsByMonth] = useState({
+  "2025-05": [
+    { id: 1, name: "Makanan", budgets: 2000000, used: 0, icon: null },
+    { id: 2, name: "Transportasi", budgets: 4000000, used: 0, icon: null },
+  ],
+  "2025-04": [
+    { id: 1, name: "Makanan", budgets: 1500000, used: 0, icon: null },
+  ],
+});
+
 
   const initialTransactions = [
     { id: 1, name: "Nasi Goreng", amount: 25000, category: "Makanan", date: "2025-05-09" },
@@ -21,6 +28,7 @@ function App() {
     { id: 5, name: "Cemilan", amount: 5000, category: "Makanan", date: "2024-12-20" },
   ];
   
+  const [isModalAddMonthOpen, setIsModalAddMonthOpen] = useState(false);
   const [transactions, setTransactions] = useState(initialTransactions);
   const [isModalOpen, setModalOpen] = useState(false);
   const [selectedBudget, setSelectedBudget] = useState(null); // Data untuk edit
@@ -28,7 +36,8 @@ function App() {
   const [selectedIcon, setSelectedIcon] = useState(null);
   const [iconTargetId, setIconTargetId] = useState(null);
   const [selectedTab, setSelectedTab] = useState("Recent");
-  
+  const [selectedMonth, setSelectedMonth] = useState("2025-05");
+  const budgets = budgetsByMonth[selectedMonth] || [];
   //Fungsi atau Method
   const handleTransactionsChange = (updatedRows) => {
     setTransactions(updatedRows);
@@ -39,14 +48,28 @@ function App() {
   setSelectedIcon(iconPath);
 
   if (iconTargetId !== null) {
-    setBudgets((prev) =>
-      prev.map((b) =>
+    setBudgetsByMonth((prev) => ({
+      ...prev,
+      [selectedMonth]: prev[selectedMonth].map((b) =>
         b.id === iconTargetId ? { ...b, icon: iconPath } : b
       )
-    );
+    }));
     setIconTargetId(null); // Reset setelah selesai
   }
 };
+  function handleAddMonth(newMonth) {
+  if (budgetsByMonth[newMonth]) {
+    alert("Maaf, bulan sudah ada!");
+    return;
+  }
+
+  setBudgetsByMonth(prev => ({
+    ...prev,
+    [newMonth]: []
+  }));
+  setSelectedMonth(newMonth);
+  setModalOpen(false);
+}
 
   const handleEdit = (budget) => {
     setSelectedBudget(budget);
@@ -54,27 +77,29 @@ function App() {
   };
   
   const handleSaveBudget = (updatedBudget) => {
-    setBudgets((prevBudgets) => {
-      const index = prevBudgets.findIndex((b) => b.id === updatedBudget.id);
-      if (index !== -1) {
-        // Mode edit
-        const newBudgets = [...prevBudgets];
-        newBudgets[index] = {
-          ...newBudgets[index], // pertahankan nilai yang lama
-          ...updatedBudget,     // timpa dengan data baru
-        };
-        return newBudgets;
-      } else {
-        // Mode tambah
-        return [...prevBudgets, { ...updatedBudget, used: 0 }];
-      }
-    });
-  };
+  setBudgetsByMonth((prev) => {
+    const monthBudgets = prev[selectedMonth] || [];
+    const index = monthBudgets.findIndex(b => b.id === updatedBudget.id);
+
+    if (index !== -1) {
+      // Edit budget
+      const newBudgets = [...monthBudgets];
+      newBudgets[index] = { ...newBudgets[index], ...updatedBudget };
+      return { ...prev, [selectedMonth]: newBudgets };
+    } else {
+      // Tambah budget baru
+      return { ...prev, [selectedMonth]: [...monthBudgets, { ...updatedBudget, used: 0 }] };
+    }
+  });
+};
   
   const handleHapus = (id) => {
-    setBudgets((prevBudgets) => prevBudgets.filter((b) => b.id !== id));
+    setBudgetsByMonth((prev) => ({
+      ...prev,
+      [selectedMonth]: (prev[selectedMonth] || []).filter((b) => b.id !== id),
+    }));
   };
-
+  
   const CircularProgress = ({ percentage }) => {
     const pct = Number(percentage); // pastikan tipe number
     const radius = 20;
@@ -118,21 +143,31 @@ function App() {
   };
 
   useEffect(() => {
-  const updatedBudgets = budgets.map(budget => {
-    const totalUsed = transactions
-      .filter(tx => tx.category === budget.name)
-      .reduce((sum, tx) => sum + tx.amount, 0);
+  setBudgetsByMonth((prev) => {
+    const current = prev[selectedMonth] || [];
+    const updated = current.map((budget) => {
+      const totalUsed = transactions
+        .filter(tx => tx.category === budget.name && tx.date.startsWith(selectedMonth))
+        .reduce((sum, tx) => sum + tx.amount, 0);
+      return { ...budget, used: totalUsed };
+    });
 
-    return { ...budget, used: totalUsed };
+    return {
+      ...prev,
+      [selectedMonth]: updated
+    };
   });
+}, [transactions, selectedMonth]);
 
-  // Cek kalau ada perubahan yang beda baru update state
-  const isDifferent = updatedBudgets.some((b, i) => b.used !== budgets[i].used);
-
-  if (isDifferent) {
-    setBudgets(updatedBudgets);
-  }
-}, [transactions, budgets]);
+  function formatMonth(monthStr) {
+  // monthStr: "2024-01"
+  const [year, month] = monthStr.split("-");
+  const monthNames = [
+    "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+    "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+  ];
+  return `${monthNames[parseInt(month, 10) - 1]} ${year}`;
+}
 
   //Tampilan
   return (
@@ -153,9 +188,40 @@ function App() {
         <div className="flex flex-col w-1/6">
           <div className="flex flex-col">
             <h1 className="bg-gray-500 rounded-md text-[13px] md:text-base lg:text-lg font-bold text-white px-2 w-3/4">
-              Budgets
+              Kategori Bulanan
             </h1>
-            <div className="flex flex-wrap gap-3 py-3 w-full">
+            <div className="mb-4 py-2">
+              <label htmlFor="month-select" className="text-sm font-semibold mr-2 text-gray-700">
+                Pilih Bulan:
+              </label>
+              <select
+                value={selectedMonth}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === "add_new") {
+                    setIsModalAddMonthOpen(true);
+                  } else {
+                    setSelectedMonth(val);
+                  }
+                }}
+              >
+                {Object.keys(budgetsByMonth)
+                  .sort((a, b) => new Date(a) - new Date(b))
+                  .map((month) => (
+                    <option key={month} value={month}>
+                      {formatMonth(month)}
+                    </option>
+                  ))
+                }
+                <option value="add_new">+ Tambah Bulan</option>
+              </select>
+              <ModalAddMonth
+                isOpen={isModalAddMonthOpen}
+                onClose={() => setIsModalAddMonthOpen(false)}
+                onAddMonth={handleAddMonth}
+              />
+            </div>
+            <div className="flex flex-wrap gap-3 py-1 w-full">
               {budgets.map((item) => {
                 const percentage =
                   item.budgets > 0 ? ((item.used || 0) / item.budgets) * 100 : 0;
@@ -229,7 +295,7 @@ function App() {
                             opacity-0 group-hover:opacity-100 transition-all duration-200 
                             whitespace-nowrap z-10
                             pointer-events-none">
-                          Pendapatan
+                          Jumlah 
                         </div>
                       </div>
                       <div className="flex flex-row gap-1 items-center relative w-fit group cursor-pointer">
@@ -304,11 +370,11 @@ function App() {
 
             {/* Content berdasarkan tab */}
             {selectedTab === "Recent" && (
-              <Recent budgets={budgets} transactions={transactions} onRowsChange={handleTransactionsChange} />
+              <Recent budgets={budgetsByMonth} transactions={transactions} onRowsChange={handleTransactionsChange} />
             )}
             {selectedTab === "Harian" && (
               <FilterTransaksi
-              budgets={budgets}
+              budgets={budgetsByMonth}
               tab={"Harian"}
               transactions={transactions}
               setTransactions={setTransactions}
@@ -317,7 +383,7 @@ function App() {
             )}
             {selectedTab === "Bulanan" && (
               <FilterTransaksi
-              budgets={budgets}
+              budgets={budgetsByMonth}
               tab={"Bulanan"}
               transactions={transactions}
               setTransactions={setTransactions}
@@ -326,7 +392,7 @@ function App() {
             )}
             {selectedTab === "Tahunan" && (
               <FilterTransaksi
-              budgets={budgets}
+              budgets={budgetsByMonth}
               tab={"Tahunan"}
               transactions={transactions}
               setTransactions={setTransactions}
@@ -337,11 +403,12 @@ function App() {
         </div>
   
         {/* Tampilan Graph */}
-        <div className="w-2/6">
+        <div className="w-2/6 px-2">
           <div className="flex flex-col">
             <h1 className="bg-gray-300 rounded-md text-[13px] md:text-base lg:text-lg font-bold text-white mx-2 px-2 w-full">
               Graph
             </h1>
+            <ChartKeuangan transactions={transactions} tab={selectedTab} />
           </div>
         </div>
       </div>
