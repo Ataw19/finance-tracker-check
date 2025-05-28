@@ -1,24 +1,29 @@
 import React, { useState, useEffect } from "react";
 import IconPickerModal from "./IconPickerModal";
 
-const ModalBudget = ({ isOpen, onClose, initialData = null, onSave }) => {
+const ModalBudget = ({ isOpen, onClose, initialData = null, onSave, type = "budget" }) => {
   const [showIconPicker, setShowIconPicker] = useState(false);
   const [selectedIcon, setSelectedIcon] = useState(null);
   const [nama, setNama] = useState("");
   const [jumlah, setJumlah] = useState("");
   const [isEditingNama, setEditingNama] = useState(false);
-  // Isi data kalau edit
+
   useEffect(() => {
-    if (initialData) {
-      setSelectedIcon(initialData.icon || null);
-      setNama(initialData.name || "");
-      setJumlah(initialData.budgets || "");
+  if (initialData) {
+    setSelectedIcon(initialData.icon || null);
+    setNama(initialData.name || "");
+
+    if (type === "akun") {
+      setJumlah(initialData.Total || "");
     } else {
-      setSelectedIcon(null);
-      setNama("");
-      setJumlah("");
+      setJumlah(initialData.budgets || "");
     }
-  }, [initialData]);
+  } else {
+    setSelectedIcon(null);
+    setNama("");
+    setJumlah("");
+  }
+}, [initialData, type]);
 
   if (!isOpen) return null;
 
@@ -28,19 +33,27 @@ const ModalBudget = ({ isOpen, onClose, initialData = null, onSave }) => {
   };
 
   const handleSubmit = (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    const updatedBudget = {
-      id: initialData?.id || Date.now(),
-      name: nama,
-      budgets: parseInt(jumlah),
-      icon: selectedIcon,
-      used: initialData?.used || 0, // pertahankan nilai used jika ada
-    };
-
-    onSave(updatedBudget); // Panggil ke App.js
-    onClose(); // Tutup modal
+  const updatedItem = {
+    id: initialData?.id || Date.now(),
+    name: nama,
+    icon: selectedIcon,
+    used: initialData?.used || 0,
   };
+
+  if (type === "akun") {
+    updatedItem.Total = parseInt(jumlah);
+  } else {
+    // budget
+    updatedItem.budgets = parseInt(jumlah);
+  }
+
+  onSave(updatedItem);
+  onClose();
+};
+
+  const typeLabel = type === "akun" ? "Akun" : "Kategori";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
@@ -48,12 +61,12 @@ const ModalBudget = ({ isOpen, onClose, initialData = null, onSave }) => {
         <button onClick={onClose} className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 dark:hover:text-white">✕</button>
 
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-          {initialData ? "Edit Budget" : "Tambah Budget"}
+          {initialData ? `Edit ${typeLabel}` : `Tambah ${typeLabel}`}
         </h2>
 
-        <form className="" onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit}>
           {/* Icon Picker */}
-          <div>
+          <div className="mb-4">
             <div
               className="w-12 h-12 rounded-full border cursor-pointer bg-gray-300 flex items-center justify-center"
               onClick={() => setShowIconPicker(true)}
@@ -75,36 +88,32 @@ const ModalBudget = ({ isOpen, onClose, initialData = null, onSave }) => {
                 onChange={(e) => setNama(e.target.value)}
                 onBlur={() => setEditingNama(false)}
                 autoFocus
-                className=" bg-transparent border-none outline-none focus:ring-0 text-base text-gray-300 dark:text-gray-300 placeholder-gray-400"
+                className="bg-transparent border-none outline-none focus:ring-0 text-base text-gray-300 dark:text-gray-300 placeholder-gray-400"
                 required
               />
             ) : (
               <div
-                className=" text-gray-300 dark:text-gray-300 cursor-text text-base"
+                className="text-gray-300 dark:text-gray-300 cursor-text text-base"
                 onClick={() => setEditingNama(true)}
-                required
               >
-                {nama || <span className="italic text-gray-400 text-base">Nama Pendapatan</span>}
+                {nama || <span className="italic text-gray-400 text-base">Nama {typeLabel}</span>}
               </div>
             )}
           </div>
 
           {/* Jumlah */}
-          <div className="relative z-0 w-full mt-3.5 mb-5 group ">
+          <div className="relative z-0 w-full mt-3.5 mb-5 group">
             <input
               type="number"
-              id="TotalPendapatan"
               value={jumlah}
               onChange={(e) => setJumlah(e.target.value)}
               placeholder=" "
               required
-              className="block py-1.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 bor appearance-none dark:text-white dark:border-gray-600 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+              className="block py-1.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 dark:text-white dark:border-gray-600 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
             />
-            <label
-              htmlFor="TotalPendapatan"
-              className="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6"
-            >
-              Jumlah Pendapatan
+            <label className="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] 
+              peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">
+              Jumlah 
             </label>
           </div>
 

@@ -3,7 +3,7 @@ import CurrencyInput from "react-currency-input-field";
 import { Trash } from "lucide-react";
 
 
-const Recent = ({ budgets, transactions, onRowsChange }) => {
+const Recent = ({ budgets,akun, transactions, onRowsChange }) => {
   const [rows, setRows] = useState(transactions);
 
   const sortedTransactions = [...rows].sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
@@ -18,6 +18,12 @@ const Recent = ({ budgets, transactions, onRowsChange }) => {
   const monthKey = new Date(date).toISOString().slice(0, 7); // "YYYY-MM"
   return budgets[monthKey] || [];
 };
+
+  const getAkunOptions = (date) => {
+  const monthKey = new Date(date).toISOString().slice(0, 7); // "YYYY-MM"
+  return akun[monthKey] || [];
+};
+
   const handleChange = (id, field, value) => {
     setRows((prevRows) =>
       prevRows.map((row) =>
@@ -100,13 +106,19 @@ const Recent = ({ budgets, transactions, onRowsChange }) => {
                   ))}
                 </select>
               </td>
-              <td className="border p-0 bg-gray-200 border-opacity-40 border-r-black border-b-black">
-                <input
-                  type="text"
+              <td className="border p-0 bg-gray-200 border-opacity-40 border-r-black border-b-black text-black/60">
+                <select
                   value={row.account}
                   onChange={(e) => handleChange(row.id, "account", e.target.value)}
                   className="w-full outline-none bg-gray-200"
-                />
+                >
+                  <option value="">Pilih</option>
+                  {getAkunOptions(row.date).map((b) => (
+                    <option key={b.id} value={b.name}>
+                      {b.name}
+                    </option>
+                  ))}
+                </select>
               </td>
               <td className="border p-0 bg-gray-200 border-opacity-40 border-b-black text-black/60">
                 <input

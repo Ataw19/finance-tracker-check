@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Trash } from "lucide-react";
 
-function FilterTransaksi({ budgets, onRowsChange, tab, transactions, setTransactions }) {
+function FilterTransaksi({ budgets, akun, onRowsChange, tab, transactions, setTransactions }) {
   const [expandedGroups, setExpandedGroups] = useState({});
   const [sortBy, setSortBy] = useState("date");
 
@@ -23,7 +23,10 @@ function FilterTransaksi({ budgets, onRowsChange, tab, transactions, setTransact
   const monthKey = new Date(date).toISOString().slice(0, 7); // "YYYY-MM"
   return budgets[monthKey] || [];
   };
-
+  const getAkunOptions = (date) => {
+    const monthKey = new Date(date).toISOString().slice(0, 7); // "YYYY-MM"
+    return akun[monthKey] || [];
+  };
   const groupBy = (data) => {
     const grouped = {};
     data.forEach((item) => {
@@ -119,6 +122,7 @@ function FilterTransaksi({ budgets, onRowsChange, tab, transactions, setTransact
                         <th className="px-2 py-1 border">Nama</th>
                         <th className="px-2 py-1 border">Jumlah</th>
                         <th className="px-2 py-1 border">Kategori</th>
+                        <th className="px-2 py-1 border">Akun</th>
                         <th className="px-2 py-1 border">Tanggal</th>
                       </tr>
                     </thead>
@@ -150,6 +154,20 @@ function FilterTransaksi({ budgets, onRowsChange, tab, transactions, setTransact
                             >
                               <option value="">Pilih</option>
                               {getBudgetOptions(row.date).map((b) => (
+                                <option key={b.id} value={b.name}>
+                                  {b.name}
+                                </option>
+                              ))}
+                            </select>
+                          </td>
+                          <td className="px-2 py-1 border">
+                            <select
+                              value={row.akun}
+                              onChange={(e) => handleChange(row.id, "akun", e.target.value)}
+                              className="w-full outline-none bg-transparent"
+                            >
+                              <option value="">Pilih</option>
+                              {getAkunOptions(row.date).map((b) => (
                                 <option key={b.id} value={b.name}>
                                   {b.name}
                                 </option>

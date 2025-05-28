@@ -19,6 +19,16 @@ function App() {
   ],
 });
 
+  const [AkunByMonth, setAkunByMonth] = useState({
+  "2025-05": [
+    { id: 1, name: "Bank BRI", Total: 2000000, used: 0, icon: null },
+    { id: 2, name: "Tunai", Total: 4000000, used: 0, icon: null },
+  ],
+  "2025-04": [
+    { id: 1, name: "Bank BRI", Total: 1500000, used: 0, icon: null },
+  ],
+});
+
 
   const initialTransactions = [
     { id: 1, name: "Nasi Goreng", amount: 25000, category: "Makanan", date: "2025-05-09" },
@@ -27,7 +37,7 @@ function App() {
     { id: 4, name: "Bensin", amount: 50000, category: "Transportasi", date: "2025-04-01" },
     { id: 5, name: "Cemilan", amount: 5000, category: "Makanan", date: "2024-12-20" },
   ];
-  
+  const [activeAddMonthTarget, setActiveAddMonthTarget] = useState(null);
   const [isModalAddMonthOpen, setIsModalAddMonthOpen] = useState(false);
   const [transactions, setTransactions] = useState(initialTransactions);
   const [isModalOpen, setModalOpen] = useState(false);
@@ -35,10 +45,35 @@ function App() {
   const [showIconPicker, setShowIconPicker] = useState(false);
   const [selectedIcon, setSelectedIcon] = useState(null);
   const [iconTargetId, setIconTargetId] = useState(null);
-  const [selectedTab, setSelectedTab] = useState("Recent");
+  const [selectedTab, setSelectedTab] = useState("Terkini");
+
   const [selectedMonth, setSelectedMonth] = useState("2025-05");
   const budgets = budgetsByMonth[selectedMonth] || [];
+  const Budgetperpage = 5;
+  const [currentBudget, setCurrentBudget] = useState(1);
+  const displayedBudgets = budgets.slice(0, currentBudget * Budgetperpage);
+  const hasMoreBudget = budgets.length > displayedBudgets.length;
+  
+  const [selectedMonthAkun, setSelectedMonthAkun] = useState("2025-05");
+  const Akun = AkunByMonth[selectedMonthAkun] || [];
+  const Akunperpage = 5;
+  const [currentAkun, setCurrentAkun] = useState(1);
+  const displayedAkun = Akun.slice(0, currentAkun * Akunperpage);
+  const hasMoreAkun = Akun.length > displayedAkun.length;
+  const [selectedItem, setSelectedItem] = useState(null); // bisa untuk akun atau budget
+  const [modalType, setModalType] = useState(null); // "budget" atau "akun"
+  const [iconTargetType, setIconTargetType] = useState(null);
+
   //Fungsi atau Method
+  const handleAddMonthWrapper = (newMonth) => {
+  if (activeAddMonthTarget === "budget") {
+    handleAddMonth(newMonth);
+  } else if (activeAddMonthTarget === "akun") {
+    handleAddMonthAkun(newMonth);
+  }
+  setIsModalAddMonthOpen(false);
+};
+
   const handleTransactionsChange = (updatedRows) => {
     setTransactions(updatedRows);
   };
@@ -47,16 +82,28 @@ function App() {
   setShowIconPicker(false);
   setSelectedIcon(iconPath);
 
-  if (iconTargetId !== null) {
-    setBudgetsByMonth((prev) => ({
-      ...prev,
-      [selectedMonth]: prev[selectedMonth].map((b) =>
-        b.id === iconTargetId ? { ...b, icon: iconPath } : b
-      )
-    }));
-    setIconTargetId(null); // Reset setelah selesai
+  if (iconTargetId !== null && iconTargetType !== null) {
+    if (iconTargetType === "budget") {
+      setBudgetsByMonth((prev) => ({
+        ...prev,
+        [selectedMonth]: prev[selectedMonth].map((b) =>
+          b.id === iconTargetId ? { ...b, icon: iconPath } : b
+        ),
+      }));
+    } else if (iconTargetType === "akun") {
+      setAkunByMonth((prev) => ({
+        ...prev,
+        [selectedMonth]: prev[selectedMonth].map((a) =>
+          a.id === iconTargetId ? { ...a, icon: iconPath } : a
+        ),
+      }));
+    }
+
+    setIconTargetId(null);
+    setIconTargetType(null);
   }
-};
+}
+
   function handleAddMonth(newMonth) {
   if (budgetsByMonth[newMonth]) {
     alert("Maaf, bulan sudah ada!");
@@ -70,27 +117,61 @@ function App() {
   setSelectedMonth(newMonth);
   setModalOpen(false);
 }
+  function handleAddMonthAkun(newMonth) {
+  if (AkunByMonth[newMonth]) {
+    alert("Maaf, bulan sudah ada!");
+    return;
+  }
 
-  const handleEdit = (budget) => {
-    setSelectedBudget(budget);
-    setModalOpen(true);
-  };
+  setAkunByMonth(prev => ({
+    ...prev,
+    [newMonth]: []
+  }));
+  setSelectedMonthAkun(newMonth);
+  setModalOpen(false);
+}
+
+  const handleEdit = (item, type) => {
+  setSelectedItem(item);
+  setModalType(type); // "budget" atau "akun"
+  setModalOpen(true);
+};
   
-  const handleSaveBudget = (updatedBudget) => {
-  setBudgetsByMonth((prev) => {
-    const monthBudgets = prev[selectedMonth] || [];
-    const index = monthBudgets.findIndex(b => b.id === updatedBudget.id);
+  const handleSave = (updatedItem) => {
+  if (modalType === "budget") {
+    setBudgetsByMonth((prev) => {
+      const monthBudgets = prev[selectedMonth] || [];
+      const index = monthBudgets.findIndex(b => b.id === updatedItem.id);
 
-    if (index !== -1) {
-      // Edit budget
-      const newBudgets = [...monthBudgets];
-      newBudgets[index] = { ...newBudgets[index], ...updatedBudget };
-      return { ...prev, [selectedMonth]: newBudgets };
-    } else {
-      // Tambah budget baru
-      return { ...prev, [selectedMonth]: [...monthBudgets, { ...updatedBudget, used: 0 }] };
-    }
-  });
+      if (index !== -1) {
+        // Edit budget
+        const newBudgets = [...monthBudgets];
+        newBudgets[index] = { ...newBudgets[index], ...updatedItem };
+        return { ...prev, [selectedMonth]: newBudgets };
+      } else {
+        // Tambah budget baru
+        return { ...prev, [selectedMonth]: [...monthBudgets, { ...updatedItem, used: 0 }] };
+      }
+    });
+  } else if (modalType === "akun") {
+    setAkunByMonth((prev) => {
+      const monthAkuns = prev[selectedMonthAkun] || [];
+      const index = monthAkuns.findIndex(a => a.id === updatedItem.id);
+
+      if (index !== -1) {
+        // Edit akun
+        const newAkuns = [...monthAkuns];
+        newAkuns[index] = { ...newAkuns[index], ...updatedItem };
+        return { ...prev, [selectedMonthAkun]: newAkuns };
+      } else {
+        // Tambah akun baru
+        return { ...prev, [selectedMonthAkun]: [...monthAkuns, { ...updatedItem, used: 0 }] };
+      }
+    });
+  }
+
+  setModalOpen(false);
+  setSelectedItem(null);
 };
   
   const handleHapus = (id) => {
@@ -142,7 +223,7 @@ function App() {
     );
   };
 
-  useEffect(() => {
+ useEffect(() => {
   setBudgetsByMonth((prev) => {
     const current = prev[selectedMonth] || [];
     const updated = current.map((budget) => {
@@ -154,10 +235,28 @@ function App() {
 
     return {
       ...prev,
-      [selectedMonth]: updated
+      [selectedMonth]: updated,
     };
   });
 }, [transactions, selectedMonth]);
+
+// Untuk akun bulanan
+useEffect(() => {
+  setAkunByMonth((prev) => {
+    const current = prev[selectedMonthAkun] || [];
+    const updated = current.map((akun) => {
+      const totalUsed = transactions
+        .filter(tx => tx.akun === akun.name && tx.date.startsWith(selectedMonthAkun))
+        .reduce((sum, tx) => sum + tx.amount, 0);
+      return { ...akun, used: totalUsed };
+    });
+
+    return {
+      ...prev,
+      [selectedMonthAkun]: updated,
+    };
+  });
+}, [transactions, selectedMonthAkun]);
 
   function formatMonth(monthStr) {
   // monthStr: "2024-01"
@@ -183,7 +282,7 @@ function App() {
         </h1>
       </div>
   
-      {/* Tampilan kolom budget */}
+      {/* Tampilan kolom bagian kiri */}
       <div className="py-10 px-10 flex flex-row bg-gray-200">
         <div className="flex flex-col w-1/6">
           <div className="flex flex-col">
@@ -200,6 +299,7 @@ function App() {
                   const val = e.target.value;
                   if (val === "add_new") {
                     setIsModalAddMonthOpen(true);
+                    setActiveAddMonthTarget("budget");
                   } else {
                     setSelectedMonth(val);
                   }
@@ -215,14 +315,9 @@ function App() {
                 }
                 <option value="add_new">+ Tambah Bulan</option>
               </select>
-              <ModalAddMonth
-                isOpen={isModalAddMonthOpen}
-                onClose={() => setIsModalAddMonthOpen(false)}
-                onAddMonth={handleAddMonth}
-              />
             </div>
             <div className="flex flex-wrap gap-3 py-1 w-full">
-              {budgets.map((item) => {
+              {displayedBudgets.map((item) => {
                 const percentage =
                   item.budgets > 0 ? ((item.used || 0) / item.budgets) * 100 : 0;
   
@@ -241,6 +336,7 @@ function App() {
                                 item.icon ? "border-none" : "bg-gray-300"
                               }`}
                               onClick={() => {
+                                setIconTargetType("budget");
                                 setIconTargetId(item.id);
                                 setShowIconPicker(true);
                               }}
@@ -275,7 +371,7 @@ function App() {
                         </div>
                         <div className="w-1/6 flex justify-end items-start">
                           <button
-                            onClick={() => handleEdit(item)}
+                            onClick={() => handleEdit(item, "budget")}
                             className="text-gray-500 text-[10px] hover:text-gray-700 ml-auto mr-2"
                           >
                             edit
@@ -319,39 +415,188 @@ function App() {
               {/* Tombol tambah budget */}
               <button
                 onClick={() => {
+                  setModalType("budget")
                   setSelectedBudget(null);
                   setModalOpen(true);
                 }}
                 className="bg-gray-100 text-gray-300 xl:text-[12px] 2xl:text-[15px] px-5 py-2 rounded hover:bg-gray-500 w-9/12"
               >
-                + Tambah Budgets
+                + Tambah Kategori
               </button>
-  
-              {/* Modal */}
-              <ModalBudget
-                isOpen={isModalOpen}
-                onClose={() => {
-                  setModalOpen(false);
-                  setSelectedBudget(null);
-                  setSelectedIcon(null);
-                }}
-                initialData={selectedBudget}
-                onSave={handleSaveBudget}
-              />
             </div>
+            {hasMoreBudget && (
+              <button
+                onClick={() => setCurrentBudget(prev => prev + 1)}
+                className="bg-gray-300 text-gray-800 text-sm px-3 py-1 rounded hover:bg-gray-400 mt-3"
+              >
+                Tampilkan lebih banyak...
+              </button>
+            )}
           </div>
+          {/*Tampilan Konten Kedua bagian kiri */}
+          <div className="flex flex-col w-full mt-7">
+              <div className="flex flex-col">
+                <h1 className="bg-gray-500 rounded-md text-[13px] md:text-base lg:text-lg font-bold text-white px-2 w-3/4">
+                  Akun Bulanan
+                </h1>
+                <div className="mb-4 py-2">
+                  <label htmlFor="month-select" className="text-sm font-semibold mr-2 text-gray-700">
+                    Pilih Bulan:
+                  </label>
+                  <select
+                    value={selectedMonthAkun}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === "add_new") {
+                        setIsModalAddMonthOpen(true);
+                        setActiveAddMonthTarget("akun"); 
+                      } else {
+                        setSelectedMonthAkun(val);
+                      }
+                    }}
+                  >
+                    {Object.keys(AkunByMonth)
+                      .sort((a, b) => new Date(a) - new Date(b))
+                      .map((month) => (
+                        <option key={month} value={month}>
+                          {formatMonth(month)}
+                        </option>
+                      ))
+                    }
+                    <option value="add_new">+ Tambah Bulan</option>
+                  </select>
+                </div>
+                <div className="flex flex-wrap gap-3 py-1 w-full">
+                  {displayedAkun.map((item) => {
+                    const percentage =
+                      item.Total > 0 ? ((item.used || 0) / item.Total) * 100 : 0;
+      
+                    return (
+                      <div
+                        key={item.id}
+                        className="w-4/6 sm:w-4/6 lg:w-2/3"
+                      >
+                        <div className="bg-white border rounded-xl px-2 py-1 gap-1 flex flex-col w-full border-gray-300">
+                          <div className="flex flex-row">
+                            <div className="flex flex-wrap items-center w-5/6">
+                              {/* Icon Picker */}
+                              <div>
+                                <div
+                                  className={`w-6 h-6 rounded-full border cursor-pointer flex items-center justify-center mr-2 ${
+                                    item.icon ? "border-none" : "bg-gray-300"
+                                  }`}
+                                  onClick={() => {
+                                    setIconTargetType("akun");
+                                    setIconTargetId(item.id);
+                                    setShowIconPicker(true);
+                                  }}
+                                >
+                                  {item.icon ? (
+                                    <img
+                                      src={item.icon}
+                                      alt="Selected Icon"
+                                      className="w-full h-full object-cover rounded-full"
+                                    />
+                                  ) : (
+                                    <span className="text-gray-500">+</span>
+                                  )}
+                                </div>
+                                {showIconPicker && (
+                                  <IconPickerModal
+                                    onSelect={(icon) => {
+                                      console.log("Icon saat ini:", selectedIcon);
+                                      handleIconSelect(icon);
+                                    }}
+                                    onClose={() => setShowIconPicker(false)}
+                                  />
+                                )}
+                              </div>
+                              <span className="text-[10px] text-left 
+                                md:text-[10px] 
+                                lg:text-[10px]
+                                xl:text-[11px]
+                                2xl:text-[12px]">
+                                {item.name}
+                              </span>
+                            </div>
+                            <div className="w-1/6 flex justify-end items-start">
+                              <button
+                                onClick={() => handleEdit(item, "akun")}
+                                className="text-gray-500 text-[10px] hover:text-gray-700 ml-auto mr-2"
+                              >
+                                edit
+                              </button>
+                              <button
+                                onClick={() => handleHapus(item.id)}
+                                className="text-gray-500 text-[10px] hover:text-gray-700"
+                              >
+                                X
+                              </button>
+                            </div>
+                          </div>
+                          <div className="text-[11px] mt-1 w-fit relative group inline-block cursor-pointer">
+                            Rp.{item.Total}
+                            <div className="absolute left-full top-1/2 ml-2 -translate-y-1/2
+                                bg-gray-500 text-white text-[11px] px-2 py-1 rounded 
+                                opacity-0 group-hover:opacity-100 transition-all duration-200 
+                                whitespace-nowrap z-10
+                                pointer-events-none">
+                              Jumlah 
+                            </div>
+                          </div>
+                          <div className="flex flex-row gap-1 items-center relative w-fit group cursor-pointer">
+                            <div className="text-[11px]">
+                              {percentage.toFixed(0)}%
+                            </div>
+                            <CircularProgress percentage={percentage} />
+                            <div className="absolute left-full top-1/2 ml-2 -translate-y-1/2
+                                bg-gray-500 text-white text-[11px] px-1 py-1 rounded 
+                                opacity-0 group-hover:opacity-100 transition-all duration-200 
+                                whitespace-nowrap z-10
+                                pointer-events-none">
+                              Pemakaian
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+      
+                  {/* Tombol tambah akun */}
+                  <button
+                    onClick={() => {
+                      setModalType("akun")
+                      setSelectedBudget(null);
+                      setModalOpen(true);
+                    }}
+                    className="bg-gray-100 text-gray-300 xl:text-[12px] 2xl:text-[15px] px-5 py-2 rounded hover:bg-gray-500 w-9/12"
+                  >
+                    + Tambah Akun
+                  </button>
+                </div>
+                {hasMoreAkun && (
+                  <button
+                    onClick={() => setCurrentAkun(prev => prev + 1)}
+                    className="bg-gray-300 text-gray-800 text-sm px-3 py-1 rounded hover:bg-gray-400 mt-3"
+                  >
+                    Tampilkan lebih banyak...
+                  </button>
+                )}
+              </div>
         </div>
-  
+        </div>
+        
+        {/* bagian tengah */}
         <div className="w-3/6">
           <div className="flex flex-col">
             {/* Title + Table */}
             <h1 className="bg-gray-300 rounded-md text-lg md:2xl lg:text-3xl font-bold text-white mx-2 px-2 w-5/6">
-              Transaction
+              Transaksi
             </h1>
            {/* Tabs */}
             <div className="border-b border-gray-200 dark:border-gray-700 mb-2">
               <ul className="flex flex-wrap -mb-px text-sm font-medium text-center text-gray-500 dark:text-gray-400">
-                {["Recent", "Harian","Bulanan","Tahunan"].map((tab) => (
+                {["Terkini", "Harian","Bulanan","Tahunan"].map((tab) => (
                   <li key={tab} className="me-2">
                     <button
                       onClick={() => setSelectedTab(tab)}
@@ -367,14 +612,14 @@ function App() {
                 ))}
               </ul>
             </div>
-
             {/* Content berdasarkan tab */}
-            {selectedTab === "Recent" && (
-              <Recent budgets={budgetsByMonth} transactions={transactions} onRowsChange={handleTransactionsChange} />
+            {selectedTab === "Terkini" && (
+              <Recent budgets={budgetsByMonth} akun={AkunByMonth} transactions={transactions} onRowsChange={handleTransactionsChange} />
             )}
             {selectedTab === "Harian" && (
               <FilterTransaksi
               budgets={budgetsByMonth}
+              akun = {AkunByMonth}
               tab={"Harian"}
               transactions={transactions}
               setTransactions={setTransactions}
@@ -384,6 +629,7 @@ function App() {
             {selectedTab === "Bulanan" && (
               <FilterTransaksi
               budgets={budgetsByMonth}
+              akun = {AkunByMonth}
               tab={"Bulanan"}
               transactions={transactions}
               setTransactions={setTransactions}
@@ -393,6 +639,7 @@ function App() {
             {selectedTab === "Tahunan" && (
               <FilterTransaksi
               budgets={budgetsByMonth}
+              akun = {AkunByMonth}
               tab={"Tahunan"}
               transactions={transactions}
               setTransactions={setTransactions}
@@ -402,7 +649,7 @@ function App() {
           </div>
         </div>
   
-        {/* Tampilan Graph */}
+        {/* Bagian Kanan */}
         <div className="w-2/6 px-2">
           <div className="flex flex-col">
             <h1 className="bg-gray-300 rounded-md text-[13px] md:text-base lg:text-lg font-bold text-white mx-2 px-2 w-full">
@@ -410,8 +657,27 @@ function App() {
             </h1>
             <ChartKeuangan transactions={transactions} tab={selectedTab} />
           </div>
-        </div>
+        </div> 
       </div>
+
+      
+        {/* Modal */}
+        <ModalBudget
+          isOpen={isModalOpen}
+          onClose={() => {
+          setModalOpen(false);
+          setSelectedItem(null);
+          setSelectedIcon(null);
+            }}
+          initialData={selectedItem}
+          onSave={handleSave}
+          type={modalType}
+        />
+        <ModalAddMonth
+                    isOpen={isModalAddMonthOpen}
+                    onClose={() => setIsModalAddMonthOpen(false)}
+                    onAddMonth={handleAddMonthWrapper}
+        />
     </div>
   );
 }
