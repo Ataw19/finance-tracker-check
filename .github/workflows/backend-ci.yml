@@ -28,15 +28,10 @@ jobs:
 
       - name: Lint code
         run: |
-          if [ -f eslint.config.mjs ]; then
-            echo "ESLint config 'eslint.config.mjs' found, running lint with explicit config..."
-            npx eslint . --config eslint.config.mjs
-          elif [ -f .eslintrc.js ] || [ -f .eslintrc.json ]; then
-            echo "Legacy ESLint config (.eslintrc.js or .eslintrc.json) found, running lint..."
+          if [ -f .eslintrc.js ] || [ -f .eslintrc.json ] || [ -f eslint.config.mjs ]; then
             npx eslint .
           else
-            echo "No ESLint config found (eslint.config.mjs, .eslintrc.js, or .eslintrc.json), skipping lint."
-            # exit 1 # Uncomment ini jika linting wajib dan harus gagal jika tidak ada config
+            echo "No ESLint config found, skipping lint"
           fi
 
       - name: Run tests
