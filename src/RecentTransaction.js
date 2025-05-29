@@ -3,7 +3,7 @@ import CurrencyInput from "react-currency-input-field";
 import { Trash } from "lucide-react";
 
 
-const Recent = ({ budgets,akun, transactions, onRowsChange }) => {
+const Recent = ({ budgets,akun, transactions, onRowsChange,type  }) => {
   const [rows, setRows] = useState(transactions);
 
   const sortedTransactions = [...rows].sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
@@ -15,14 +15,16 @@ const Recent = ({ budgets,akun, transactions, onRowsChange }) => {
   const hasMoreRows = sortedTransactions.length > displayedRows.length;
 
   const getBudgetOptions = (date) => {
-  const monthKey = new Date(date).toISOString().slice(0, 7); // "YYYY-MM"
+  if (!budgets) return []; // amanin kalau budgets = null
+  const monthKey = new Date(date).toISOString().slice(0, 7);
   return budgets[monthKey] || [];
 };
 
   const getAkunOptions = (date) => {
-  const monthKey = new Date(date).toISOString().slice(0, 7); // "YYYY-MM"
-  return akun[monthKey] || [];
-};
+    if (!akun) return []; 
+    const monthKey = new Date(date).toISOString().slice(0, 7); // "YYYY-MM"
+    return akun[monthKey] || [];
+  };
 
   const handleChange = (id, field, value) => {
     setRows((prevRows) =>
@@ -61,84 +63,112 @@ const Recent = ({ budgets,akun, transactions, onRowsChange }) => {
           <tr className="bg-gray-200 text-left">
             <th className="border px-2 py-1 border-black/40 text-black/50 border-l-transparent">Nama Pengeluaran</th>
             <th className="border px-2 py-1 border-black/40 text-black/50">Total</th>
-            <th className="border px-2 py-1 border-black/40 text-black/50">Kategori</th>
-            <th className="border px-2 py-1 border-black/40 text-black/50">Akun</th>
+            {displayedRows.length > 0 && getBudgetOptions(displayedRows[0].date).length > 0 && (
+              <th className="border px-2 py-1 border-black/40 text-black/50">Kategori</th>
+            )}
+            {displayedRows.length > 0 && getAkunOptions(displayedRows[0].date).length > 0 && (
+              <th className="border px-2 py-1 border-black/40 text-black/50">Akun</th>
+            )}
             <th className="border px-2 py-1 border-black/40 text-black/50 border-r-transparent">Tanggal</th>
           </tr>
         </thead>
         <tbody>
-          {displayedRows.map((row) => (
-            <tr key={row.id}>
-              <td className="border p-0 bg-gray-200 border-opacity-40 border-r-black border-b-black">
-                <input
-                  type="text"
-                  value={row.name}
-                  onChange={(e) => handleChange(row.id, "name", e.target.value)}
-                  className="w-full outline-none bg-gray-200"
-                />
-              </td>
-              <td className="border p-0 bg-gray-200 border-opacity-40 border-r-black border-b-black text-black/60">
-                <div className="flex items-center w-full px-2">
-                  <CurrencyInput
-                    name="amount"
-                    value={row.amount}
-                    onValueChange={(value) => {
-                      const numericValue = value ? parseInt(value.replace(/\D/g, ""), 10) : 0;
-                      handleChange(row.id, "amount", numericValue);
-                    }}
-                    prefix="Rp. "
-                    decimalsLimit={0}
-                    className="w-full bg-gray-200 outline-none"
-                  />
-                                  </div>
-              </td>
-              <td className="border p-0 bg-gray-200 border-opacity-40 border-r-black border-b-black text-black/60">
-                <select
-                  value={row.category}
-                  onChange={(e) => handleChange(row.id, "category", e.target.value)}
-                  className="w-full outline-none bg-gray-200"
-                >
-                  <option value="">Pilih</option>
-                  {getBudgetOptions(row.date).map((b) => (
-                    <option key={b.id} value={b.name}>
-                      {b.name}
-                    </option>
-                  ))}
-                </select>
-              </td>
-              <td className="border p-0 bg-gray-200 border-opacity-40 border-r-black border-b-black text-black/60">
-                <select
-                  value={row.account}
-                  onChange={(e) => handleChange(row.id, "account", e.target.value)}
-                  className="w-full outline-none bg-gray-200"
-                >
-                  <option value="">Pilih</option>
-                  {getAkunOptions(row.date).map((b) => (
-                    <option key={b.id} value={b.name}>
-                      {b.name}
-                    </option>
-                  ))}
-                </select>
-              </td>
-              <td className="border p-0 bg-gray-200 border-opacity-40 border-b-black text-black/60">
-                <input
-                  type="date"
-                  value={row.date}
-                  onChange={(e) => handleChange(row.id, "date", e.target.value)}
-                  className="w-full outline-none bg-gray-200"
-                />
-              </td>
-              <td className="border">
-                <button
-                  className="ml-2 text-sm py-1"
-                  onClick={() => handleDeleteRow(row.id)}
-                  title="Hapus"
-                >
-                  <Trash className="w-3.5 h-3 text-black hover:text-gray-600" />
-                </button>
-              </td>
-            </tr>
-          ))}
+            {displayedRows.map((row) => {
+              const hasBudget = getBudgetOptions(row.date).length > 0;
+              const hasAkun = getAkunOptions(row.date).length > 0;
+
+              return (
+                <tr key={row.id}>
+                  <td className="border p-0 bg-gray-200 border-opacity-40 border-r-black border-b-black">
+                    <input
+                      type="text"
+                      value={row.name}
+                      onChange={(e) => handleChange(row.id, "name", e.target.value)}
+                      className="w-full outline-none bg-gray-200"
+                    />
+                  </td>
+
+                  <td className="border p-0 bg-gray-200 border-opacity-40 border-r-black border-b-black text-black/60">
+                    <div className="flex items-center w-full px-2">
+                      <CurrencyInput
+                        name="amount"
+                        value={row.amount}
+                        onValueChange={(value) => {
+                          const numericValue = value ? parseInt(value.replace(/\D/g, ""), 10) : 0;
+                          handleChange(row.id, "amount", numericValue);
+                        }}
+                        prefix="Rp. "
+                        decimalsLimit={0}
+                        className="w-full bg-gray-200 outline-none"
+                      />
+                    </div>
+                  </td>
+
+                  {type === "Budget" && (
+                    <td className="border p-0 bg-gray-200 border-opacity-40 border-r-black border-b-black text-black/60">
+                      <select
+                        value={row.category}
+                        onChange={(e) => handleChange(row.id, "category", e.target.value)}
+                        className="w-full outline-none bg-gray-200"
+                      >
+                        {getBudgetOptions(row.date).length === 0 ? (
+                          <option value="">Tidak ada kategori</option>
+                        ) : (
+                          <>
+                            <option value="">Pilih</option>
+                            {getBudgetOptions(row.date).map((b) => (
+                              <option key={b.id} value={b.name}>
+                                {b.name}
+                              </option>
+                            ))}
+                          </>
+                        )}
+                      </select>
+                    </td>
+                  )}
+                  {type === "Akun" && (
+                    <td className="border p-0 bg-gray-200 border-opacity-40 border-r-black border-b-black text-black/60">
+                      <select
+                        value={row.akun}
+                        onChange={(e) => handleChange(row.id, "akun", e.target.value)}
+                        className="w-full outline-none bg-gray-200"
+                      >
+                        {getAkunOptions(row.date).length === 0 ? (
+                          <option value="">Tidak ada Akun</option>
+                        ) : (
+                          <>
+                            <option value="">Pilih</option>
+                            {getAkunOptions(row.date).map((b) => (
+                              <option key={b.id} value={b.name}>
+                                {b.name}
+                              </option>
+                            ))}
+                          </>
+                        )}
+                      </select>
+                    </td>
+                  )}
+                  <td className="border p-0 bg-gray-200 border-opacity-40 border-b-black text-black/60">
+                    <input
+                      type="date"
+                      value={row.date}
+                      onChange={(e) => handleChange(row.id, "date", e.target.value)}
+                      className="w-full outline-none bg-gray-200"
+                    />
+                  </td>
+
+                  <td className="border">
+                    <button
+                      className="ml-2 text-sm py-1"
+                      onClick={() => handleDeleteRow(row.id)}
+                      title="Hapus"
+                    >
+                      <Trash className="w-3.5 h-3 text-black hover:text-gray-600" />
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
 
           {hasMoreRows && (
             <tr>

@@ -12,24 +12,37 @@ import {
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-const ChartKeuangan = ({ transactions }) => {
+const ChartKeuangan = ({ transactions, type }) => {
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const today = new Date();
     return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
   });
 
-  // 🧠 Pindahkan SEMUA hook ke atas
+  // Filter transaksi berdasarkan tipe dan bulan
   const filtered = useMemo(() => {
     return transactions.filter(tx => {
       const txDate = new Date(tx.date);
       const txMonth = `${txDate.getFullYear()}-${String(txDate.getMonth() + 1).padStart(2, '0')}`;
-      return txMonth === selectedMonth;
+      
+      // Sesuaikan kondisi berdasarkan type:
+      if (txMonth !== selectedMonth) return false;
+
+      if (type === "Pendapatan") {
+        // Misal pendapatan ditandai budget == null atau kategori khusus
+        return tx.budget === null || tx.akun !== null;
+      } else if (type === "Pengeluaran") {
+        // Pengeluaran adalah transaksi yang ada kategori budget (bukan pendapatan)
+        return tx.budget !== null && tx.akun == null;
+      }
+
+      return true; // fallback, tampilkan semua
     });
-  }, [transactions, selectedMonth]);
+  }, [transactions, selectedMonth, type]);
 
   const categoryTotals = useMemo(() => {
     return filtered.reduce((acc, tx) => {
-      acc[tx.category] = (acc[tx.category] || 0) + tx.amount;
+      const label = type === "Pendapatan" ? tx.akun || "Lain-lain" : tx.category || "Lain-lain";
+      acc[label] = (acc[label] || 0) + (tx.amount || 0);
       return acc;
     }, {});
   }, [filtered]);
@@ -38,7 +51,7 @@ const ChartKeuangan = ({ transactions }) => {
     const categories = Object.keys(categoryTotals);
     const colors = ['#60a5fa', '#f87171', '#34d399', '#fbbf24', '#a78bfa'];
     return {
-      labels: ['Pengeluaran'],
+      labels: ['Total'],
       datasets: categories.map((category, index) => ({
         label: category,
         data: [categoryTotals[category]],
@@ -51,11 +64,10 @@ const ChartKeuangan = ({ transactions }) => {
     responsive: true,
     plugins: {
       legend: { position: 'top' },
-      title: { display: true, text: `Laporan Keuangan (${selectedMonth})` },
+      title: { display: true, text: `Laporan ${type} (${selectedMonth})` },
     },
-  }), [selectedMonth]);
+  }), [selectedMonth, type]);
 
-  // Setelah semua hook selesai → baru lakukan conditional render
   if (filtered.length === 0) {
     return (
       <div className="w-full max-w-xl mx-auto py-2">
@@ -69,7 +81,7 @@ const ChartKeuangan = ({ transactions }) => {
         </div>
         <div className="flex justify-center items-center h-10">
           <p className='text-xl text-red-700'>
-            Tidak ada transaksi di bulan ini.
+            Tidak ada transaksi {type.toLowerCase()} di bulan ini.
           </p>
         </div>
       </div>

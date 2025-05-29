@@ -1,59 +1,106 @@
 import React, { useState, useEffect } from "react";
 import IconPickerModal from "./IconPickerModal";
 
-const ModalBudget = ({ isOpen, onClose, initialData = null, onSave, type = "budget" }) => {
+const ModalBudget = ({ isOpen, onClose, akunList = [], initialData = null, onSave, type = "budget",onChangeTempSaldo}) => {
   const [showIconPicker, setShowIconPicker] = useState(false);
   const [selectedIcon, setSelectedIcon] = useState(null);
   const [nama, setNama] = useState("");
-  const [jumlah, setJumlah] = useState("");
+  const [akunDipakai, setAkunDipakai] = useState({});
   const [isEditingNama, setEditingNama] = useState(false);
-
+  const [akunSementara, setAkunSementara] = useState([]);
+  
   useEffect(() => {
-  if (initialData) {
-    setSelectedIcon(initialData.icon || null);
-    setNama(initialData.name || "");
-
-    if (type === "akun") {
-      setJumlah(initialData.Total || "");
+    if (initialData) {
+      setSelectedIcon(initialData.icon || null);
+      setNama(initialData.name || "");
+      if (type === "budget" && initialData.akunDipakai) {
+        setAkunDipakai(initialData.akunDipakai);
+      }
     } else {
-      setJumlah(initialData.budgets || "");
+      setSelectedIcon(null);
+      setNama("");
+      setAkunDipakai({});
     }
-  } else {
-    setSelectedIcon(null);
-    setNama("");
-    setJumlah("");
-  }
-}, [initialData, type]);
-
-  if (!isOpen) return null;
+  }, [initialData, type]);
 
   const handleIconSelect = (iconPath) => {
     setSelectedIcon(iconPath);
     setShowIconPicker(false);
   };
 
-  const handleSubmit = (e) => {
-  e.preventDefault();
-
-  const updatedItem = {
-    id: initialData?.id || Date.now(),
-    name: nama,
-    icon: selectedIcon,
-    used: initialData?.used || 0,
-  };
-
-  if (type === "akun") {
-    updatedItem.Total = parseInt(jumlah);
-  } else {
-    // budget
-    updatedItem.budgets = parseInt(jumlah);
-  }
-
-  onSave(updatedItem);
-  onClose();
+  const toggleAkun = (akunName) => {
+  setAkunDipakai((prev) => {
+    // Kalau sebelumnya sudah dipilih (ada di objek)
+    if (prev.hasOwnProperty(akunName)) {
+      // Hapus kategori agar input hilang & checkbox unchecked
+      const copy = { ...prev };
+      delete copy[akunName];
+      return copy;
+    } else {
+      // Kalau belum dipilih, tambah dengan default 0 (atau bisa 1)
+      return { ...prev, [akunName]: 0 };
+    }
+  });
 };
 
+  const handleAkunAmountChange = (akunName, value) => {
+  const jumlahBaru = parseInt(value) || 0;
+
+  setAkunDipakai((prev) => ({
+    ...prev,
+    [akunName]: jumlahBaru,
+  }));
+
+  setAkunSementara((prev) =>
+  prev.map((akun) => {
+    if (akun.name !== akunName) return akun;
+
+    const sebelum = akunDipakai[akunName] || 0;
+    const selisih = jumlahBaru - sebelum;
+
+    // Jika type === 'budget' → pengeluaran → update used
+    if (type === 'budget') {
+      return {
+        ...akun,
+        used: akun.used + selisih,
+      };
+    } 
+    // Jika type === 'akun' → pendapatan → update Total
+    else {
+      return {
+        ...akun,
+        Total: akun.Total + selisih,
+      };
+    }
+  })
+);
+};
+
+  const totalBudget = Object.values(akunDipakai).reduce((sum, val) => sum + val, 0);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const updatedItem = {
+      id: initialData?.id || Date.now(),
+      name: nama,
+      icon: selectedIcon,
+      used: initialData?.used || 0,
+    };
+
+    if (type === "akun") {
+      updatedItem.Total = initialData?.Total || 0; // Tidak bisa diubah
+    } else {
+      updatedItem.budgets = totalBudget;
+      updatedItem.akunDipakai = akunDipakai;
+    }
+
+    onSave(updatedItem);
+    onClose();
+  };
+
   const typeLabel = type === "akun" ? "Akun" : "Kategori";
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
@@ -101,29 +148,58 @@ const ModalBudget = ({ isOpen, onClose, initialData = null, onSave, type = "budg
             )}
           </div>
 
-          {/* Jumlah */}
-          <div className="relative z-0 w-full mt-3.5 mb-5 group">
-            <input
-              type="number"
-              value={jumlah}
-              onChange={(e) => setJumlah(e.target.value)}
-              placeholder=" "
-              required
-              className="block py-1.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 dark:text-white dark:border-gray-600 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
-            />
-            <label className="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] 
-              peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">
-              Jumlah 
-            </label>
-          </div>
+          {/* Akun List untuk budget */}
+          {type === "budget" && (
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Sumber Dana:</label>
+              {akunList.map((akun) => {
+                return (
+                  <div key={akun.name} className="mb-2">
+                    <label className="inline-flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={akunDipakai.hasOwnProperty(akun.name)}
+                        onChange={() => toggleAkun(akun.name)}
+                        className="form-checkbox h-4 w-4 text-blue-600"
+                      />
+                      <span className="ml-2 text-sm text-gray-800 dark:text-white">
+                        {akun.name}{" "}
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                          (Sisa: Rp {(akun.Total - akun.used - (akunDipakai[akun.name] || 0)).toLocaleString()})
+                        </span>
+                      </span>
+                    </label>
+                    {akun.name in akunDipakai && (
+                      <div className="mt-1 ml-6">
+                        <input
+                          type="number"
+                          min="0"
+                          max={akun.Total - akun.used}
+                          value={akunDipakai[akun.name]}
+                          onChange={(e) => handleAkunAmountChange(akun.name, e.target.value)}
+                          className="w-32 text-sm border rounded px-2 py-1 dark:bg-gray-600 dark:text-white"
+                          placeholder={`Maks: ${akun.Total - akun.used}`}
+                        />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+              <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">Total: Rp {totalBudget.toLocaleString()}</p>
+            </div>
+          )}
 
-          <button type="submit" className="w-full bg-blue-700 text-white py-2 rounded hover:bg-blue-800">
+          {/* Tidak bisa edit jumlah jika tipe akun */}
+          {type === "akun" && (
+            <p className="mt-4 text-sm text-gray-500 dark:text-gray-300">Total Saldo: Rp {(initialData?.Total || 0).toLocaleString()}</p>
+          )}
+
+          <button type="submit" className="w-full bg-blue-700 text-white py-2 mt-5 rounded hover:bg-blue-800">
             Simpan
           </button>
         </form>
       </div>
 
-      {/* Icon Picker Modal */}
       {showIconPicker && (
         <IconPickerModal onSelect={handleIconSelect} onClose={() => setShowIconPicker(false)} />
       )}
