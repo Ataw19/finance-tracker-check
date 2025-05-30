@@ -220,6 +220,3 @@ export async function deleteDebt(id) {
   );
   return result;
 }
-
-const cekUser = await getTransactions(1);
-console.log(cekUser);

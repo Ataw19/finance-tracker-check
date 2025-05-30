@@ -22,13 +22,13 @@ const router = express.Router();
 
 // ========== KATEGORI ==========
 router.get("/categories", async (req, res) => {
-  const categories = await getCategories(req.user.id);
+  const categories = await getCategories(req.session.userId);
   res.json(categories);
 });
 
 router.post("/categories", async (req, res) => {
   const { name } = req.body;
-  const id = await createCategory(req.user.id, name);
+  const id = await createCategory(req.session.userId, name);
   res.json({ id });
 });
 
@@ -47,14 +47,14 @@ router.delete("/categories/:id", async (req, res) => {
 
 // ========== TRANSAKSI ==========
 router.get("/transactions", async (req, res) => {
-  const transactions = await getTransactions(req.user.id);
+  const transactions = await getTransactions(req.session.userId);
   res.json(transactions);
 });
 
 router.post("/transactions", async (req, res) => {
   const { categoryId, type, amount, description, date } = req.body;
   const id = await createTransaction(
-    req.user.id,
+    req.session.userId,
     categoryId,
     type,
     amount,
@@ -80,13 +80,13 @@ router.delete("/transactions/:id", async (req, res) => {
 // ========== ANGGARAN ==========
 router.get("/budgets", async (req, res) => {
   const { month, year } = req.query;
-  const budgets = await getBudgets(req.user.id, month, year);
+  const budgets = await getBudgets(req.session.userId, month, year);
   res.json(budgets);
 });
 
 router.post("/budgets", async (req, res) => {
   const { categoryId, month, year, amount } = req.body;
-  await upsertBudget(req.user.id, categoryId, month, year, amount);
+  await upsertBudget(req.session.userId, categoryId, month, year, amount);
   res.sendStatus(200);
 });
 
@@ -105,13 +105,18 @@ router.delete("/budgets/:id", async (req, res) => {
 
 // ========== UTANG ==========
 router.get("/debts/upcoming", async (req, res) => {
-  const debts = await getUpcomingDebts(req.user.id);
+  const debts = await getUpcomingDebts(req.session.userId);
   res.json(debts);
 });
 
 router.post("/debts", async (req, res) => {
   const { description, totalAmount, dueDate } = req.body;
-  const id = await createDebt(req.user.id, description, totalAmount, dueDate);
+  const id = await createDebt(
+    req.session.userId,
+    description,
+    totalAmount,
+    dueDate
+  );
   res.json({ id });
 });
 
