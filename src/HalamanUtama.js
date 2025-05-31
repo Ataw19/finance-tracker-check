@@ -117,20 +117,6 @@ function App() {
     setIconTargetType(null);
   }
 }
-  const handleAdd = (type) => {
-  setSelectedItem(null); // karena tambah, belum ada data
-  setModalType(type);
-  if (type === "budget") {
-    const akunList = AkunByMonth[selectedMonth] || [];
-    // Karena tambah, tidak ada pengurangan used dari item lama, jadi langsung copy akunList
-    const akunTemp = akunList.map((akun) => ({
-      ...akun,
-      used: akun.used || 0,
-    }));
-    setAkunSementara(akunTemp);
-  }
-  setModalOpen(true);
-};
 
   function handleAddMonth(newMonth) {
   if (budgetsByMonth[newMonth]) {
