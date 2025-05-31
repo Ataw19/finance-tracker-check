@@ -51,7 +51,6 @@ function App() {
   const [transactions, setTransactions] = useState(initialTransactions);
   const [Pendapatan, setPendapatan] = useState(initialPendapatan);
   const [isModalOpen, setModalOpen] = useState(false);
-  const [selectedBudget, setSelectedBudget] = useState(null); // Data untuk edit
   const [showIconPicker, setShowIconPicker] = useState(false);
   const [selectedIcon, setSelectedIcon] = useState(null);
   const [iconTargetId, setIconTargetId] = useState(null);
@@ -159,6 +158,17 @@ function App() {
   setSelectedMonthAkun(newMonth);
   setModalOpen(false);
 }
+  const handleAddBudget = () => {
+  setSelectedItem(null);           // Tidak ada data sebelumnya (bukan edit)
+  setModalType("budget");          // Mode budget
+
+  const akunList = AkunByMonth[selectedMonth] || [];
+  // Tidak perlu pengurangan used karena tidak sedang edit
+  const akunTemp = akunList.map((akun) => ({ ...akun }));
+
+  setAkunSementara(akunTemp);      // ← untuk modal
+  setModalOpen(true);
+};
 
   const handleEdit = (item, type) => {
   setSelectedItem(item);
@@ -178,23 +188,17 @@ function App() {
   setModalOpen(true);
 };
   
-  const handleSave = (updatedItem) => {
+ const handleSave = (updatedItem) => {
   if (modalType === "budget") {
-    let oldItem = null;
-
-    // Dapatkan item lama kalau sedang edit
-    setBudgetsByMonth((prev) => {
-      const current = prev[selectedMonth] || [];
-      oldItem = current.find((b) => b.id === updatedItem.id);
-      return prev;
-    });
+    const currentBudgets = budgetsByMonth[selectedMonth] || [];
+    const oldItem = currentBudgets.find((b) => b.id === updatedItem.id);
 
     // Update budgetsByMonth
     setBudgetsByMonth((prev) => {
       const current = prev[selectedMonth] || [];
-      const updated = updatedItem.id
+      const updated = oldItem
         ? current.map((b) => (b.id === updatedItem.id ? updatedItem : b))
-        : [...current, { ...updatedItem, id: Date.now() }];
+        : [...current, { ...updatedItem }];
       return {
         ...prev,
         [selectedMonth]: updated,
@@ -207,8 +211,8 @@ function App() {
 
       const usedDiffs = {};
 
-      // Jika sedang mengedit, kurangi dulu penggunaan lama
-      if (oldItem && oldItem.akunDipakai) {
+      // Kurangi pemakaian lama (jika edit)
+      if (oldItem?.akunDipakai) {
         for (const [akunName, jumlah] of Object.entries(oldItem.akunDipakai)) {
           usedDiffs[akunName] = (usedDiffs[akunName] || 0) - jumlah;
         }
@@ -219,16 +223,13 @@ function App() {
         usedDiffs[akunName] = (usedDiffs[akunName] || 0) + jumlah;
       }
 
-      // Hitung update saldo used
+      // Hitung saldo baru
       const updatedAkun = currentAkun.map((akun) => {
         const diff = usedDiffs[akun.name] || 0;
-        if (diff !== 0) {
-          return {
-            ...akun,
-            used: Math.max(0, (akun.used || 0) + diff),
-          };
-        }
-        return akun;
+        return {
+          ...akun,
+          used: Math.max(0, (akun.used || 0) + diff),
+        };
       });
 
       return {
@@ -248,7 +249,10 @@ function App() {
         newAkuns[index] = { ...newAkuns[index], ...updatedItem };
         return { ...prev, [selectedMonthAkun]: newAkuns };
       } else {
-        return { ...prev, [selectedMonthAkun]: [...monthAkuns, { ...updatedItem, used: 0 }] };
+        return {
+          ...prev,
+          [selectedMonthAkun]: [...monthAkuns, { ...updatedItem, used: 0 }],
+        };
       }
     });
   }
@@ -256,6 +260,7 @@ function App() {
   setModalOpen(false);
   setSelectedItem(null);
 };
+
   
   const handleHapus = (id) => {
     setBudgetsByMonth((prev) => ({
@@ -510,11 +515,13 @@ useEffect(() => {
   
               {/* Tombol tambah budget */}
               <button
-                onClick={() => handleAdd("budget")}
-                className="bg-gray-100 text-gray-300 xl:text-[12px] 2xl:text-[15px] px-5 py-2 rounded hover:bg-gray-500 w-9/12"
-              >
-                + Tambah Kategori
-              </button>
+                    onClick={() => {
+                      handleAddBudget();
+                    }}
+                    className="bg-gray-100 text-gray-300 xl:text-[12px] 2xl:text-[15px] px-5 py-2 rounded hover:bg-gray-500 w-9/12"
+                  >
+                    + Tambah Kategori
+                  </button>
             </div>
             {hasMoreBudget && (
               <button
@@ -658,7 +665,7 @@ useEffect(() => {
                   <button
                     onClick={() => {
                       setModalType("akun")
-                      setSelectedBudget(null);
+                      setSelectedItem(null);
                       setModalOpen(true);
                     }}
                     className="bg-gray-100 text-gray-300 xl:text-[12px] 2xl:text-[15px] px-5 py-2 rounded hover:bg-gray-500 w-9/12"

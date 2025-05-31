@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from "react";
 import IconPickerModal from "./IconPickerModal";
 
-const ModalBudget = ({ isOpen, onClose, akunList = [], initialData = null, onSave, type = "budget",onChangeTempSaldo}) => {
+const ModalBudget = ({ isOpen, onClose, akunList = [], initialData = null, onSave, type = "budget"}) => {
   const [showIconPicker, setShowIconPicker] = useState(false);
   const [selectedIcon, setSelectedIcon] = useState(null);
   const [nama, setNama] = useState("");
   const [akunDipakai, setAkunDipakai] = useState({});
   const [isEditingNama, setEditingNama] = useState(false);
-  const [_akunSementara, setAkunSementara] = useState([]);
   
   useEffect(() => {
     if (initialData) {
@@ -50,30 +49,6 @@ const ModalBudget = ({ isOpen, onClose, akunList = [], initialData = null, onSav
     ...prev,
     [akunName]: jumlahBaru,
   }));
-
-  setAkunSementara((prev) =>
-  prev.map((akun) => {
-    if (akun.name !== akunName) return akun;
-
-    const sebelum = akunDipakai[akunName] || 0;
-    const selisih = jumlahBaru - sebelum;
-
-    // Jika type === 'budget' → pengeluaran → update used
-    if (type === 'budget') {
-      return {
-        ...akun,
-        used: akun.used + selisih,
-      };
-    } 
-    // Jika type === 'akun' → pendapatan → update Total
-    else {
-      return {
-        ...akun,
-        Total: akun.Total + selisih,
-      };
-    }
-  })
-);
 };
 
   const totalBudget = Object.values(akunDipakai).reduce((sum, val) => sum + val, 0);
