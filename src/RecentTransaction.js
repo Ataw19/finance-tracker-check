@@ -74,8 +74,6 @@ const Recent = ({ budgets,akun, transactions, onRowsChange,type  }) => {
         </thead>
         <tbody>
             {displayedRows.map((row) => {
-              const hasBudget = getBudgetOptions(row.date).length > 0;
-              const hasAkun = getAkunOptions(row.date).length > 0;
 
               return (
                 <tr key={row.id}>

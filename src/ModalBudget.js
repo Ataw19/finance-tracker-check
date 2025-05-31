@@ -7,7 +7,7 @@ const ModalBudget = ({ isOpen, onClose, akunList = [], initialData = null, onSav
   const [nama, setNama] = useState("");
   const [akunDipakai, setAkunDipakai] = useState({});
   const [isEditingNama, setEditingNama] = useState(false);
-  const [akunSementara, setAkunSementara] = useState([]);
+  const [_akunSementara, setAkunSementara] = useState([]);
   
   useEffect(() => {
     if (initialData) {

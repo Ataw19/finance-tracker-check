@@ -45,7 +45,7 @@ const ChartKeuangan = ({ transactions, type }) => {
       acc[label] = (acc[label] || 0) + (tx.amount || 0);
       return acc;
     }, {});
-  }, [filtered]);
+ }, [filtered, type]);
 
   const data = useMemo(() => {
     const categories = Object.keys(categoryTotals);
