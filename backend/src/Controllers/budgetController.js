@@ -1,4 +1,4 @@
-const pool = require('../Config/db');
+const pool = require('../database.js');
 
 // @desc    Get budgets for a specific month and year
 // @route   GET /api/budgets?year=YYYY&month=MM
