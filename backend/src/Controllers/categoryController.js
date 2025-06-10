@@ -1,4 +1,4 @@
-const pool = require('../Config/db');
+const pool = require('../database.js');
 
 // @desc    Get all categories for a user
 // @route   GET /api/categories
