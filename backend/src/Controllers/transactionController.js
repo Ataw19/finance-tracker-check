@@ -1,4 +1,4 @@
-const pool = require('../Config/db');
+const pool = require('../database.js');
 
 // @desc    Get all transactions for a user
 // @route   GET /api/transactions
