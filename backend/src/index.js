@@ -1,45 +1,17 @@
-import express from "express";
-import cors from "cors";
-import dotenv from "dotenv";
-import session from "express-session";
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import './index.css';
+import App from './App';
+import reportWebVitals from './reportWebVitals';
 
-import authRoutes from "./routes/auth.js";
-import dashboardRoutes from "./routes/dashboard.js";
-import { isAuthenticated } from "./middleware/auth.js";
-
-dotenv.config();
-
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-// Session
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET || "secretkey",
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      secure: false, // true jika HTTPS
-      httpOnly: true,
-      maxAge: 1000 * 60 * 60 * 24, // 1 hari
-    },
-  })
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
 );
 
-// Middleware
-app.use(cors());
-app.use(express.json());
-
-// Routes
-app.use("/api/auth", authRoutes);
-app.use("/api/dashboard", isAuthenticated, dashboardRoutes);
-
-// Default Route
-app.get("/", (req, res) => {
-  res.send("API Finance Tracker is running.");
-});
-
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+// If you want to start measuring performance in your app, pass a function
+// to log results (for example: reportWebVitals(console.log))
+// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
+reportWebVitals();
