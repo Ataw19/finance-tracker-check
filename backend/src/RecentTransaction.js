@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import CurrencyInput from "react-currency-input-field";
 import { Trash } from "lucide-react";
-
+import axios from 'axios';
 
 const Recent = ({ budgets, transactions, onRowsChange }) => {
   const [rows, setRows] = useState(transactions);
@@ -38,12 +38,23 @@ const Recent = ({ budgets, transactions, onRowsChange }) => {
   };
   setRows((prevRows) => [...prevRows, newRow]);
 };
-  const handleDeleteRow = (id) => {
-  const updated = rows.filter((item) => item.id !== id);
-  setRows(updated);
-  onRowsChange(updated);
-  };
+  const handleDeleteRow = async (id) => {
+  const token = localStorage.getItem('userToken');
+  const config = { headers: { Authorization: `Bearer ${token}` } };
 
+  try {
+    // Kirim request DELETE ke backend
+    await axios.delete(`http://localhost:5000/api/transactions/${id}`, config);
+
+    // Jika berhasil, baru update state di frontend
+    const updated = rows.filter((item) => item.id !== id);
+    setRows(updated); // Update state lokal
+    onRowsChange(updated); // Beri tahu parent component
+  } catch (error) {
+    console.error("Gagal menghapus transaksi:", error);
+    alert("Gagal menghapus data. Silakan coba lagi.");
+  }
+};
   useEffect(() => {
     onRowsChange(rows);
   }, [rows, onRowsChange]); // Kirim rows setiap kali berubah

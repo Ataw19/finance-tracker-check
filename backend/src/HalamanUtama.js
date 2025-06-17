@@ -6,29 +6,9 @@ import IconPickerModal from "./IconPickerModal";
 import Recent from './RecentTransaction';
 import FilterTransaksi from './FilterTransaksi';
 import ChartKeuangan from './ChartKeuangan';
+import React, { useEffect, useState } from "react";
+import axios from 'axios';
 function App() {
-
-  //Variabel
-  const [budgetsByMonth, setBudgetsByMonth] = useState({
-  "2025-05": [
-    { id: 1, name: "Makanan", budgets: 0, used: 0, icon: null },
-    { id: 2, name: "Transportasi", budgets: 0, used: 0, icon: null },
-  ],
-  "2025-04": [
-    { id: 1, name: "Makanan", budgets: 0, used: 0, icon: null },
-  ],
-});
-
-  const [AkunByMonth, setAkunByMonth] = useState({
-  "2025-05": [
-    { id: 1, name: "Bank BRI", Total: 0, used: 0, icon: null },
-    { id: 2, name: "Tunai", Total: 0, used: 0, icon: null },
-  ],
-  "2025-04": [
-    { id: 1, name: "Bank BRI", Total: 0, used: 0, icon: null },
-  ],
-});
-
 
   const initialTransactions = [
     { id: 1, name: "Nasi Goreng", amount: 25000, category: "Makanan", date: "2025-05-09" },
@@ -45,11 +25,50 @@ function App() {
     { id: 4, name: "Gaji", amount: 50000, akun: "", date: "2025-04-01" },
     { id: 5, name: "Hadiah", amount: 5000, akun: "", date: "2024-12-20" },
   ];
+// 2. Tambahkan useEffect untuk fetch data
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      const token = localStorage.getItem('userToken');
+      if (!token) {
+        // Jika tidak ada token, mungkin arahkan ke halaman login
+        setLoading(false);
+        return;
+      }
 
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+
+      try {
+        // Fetch semua data yang dibutuhkan
+        const transResponse = await axios.get('http://localhost:5000/api/transactions?type=expense', config);
+        const pendResponse = await axios.get('http://localhost:5000/api/transactions?type=income', config);
+        // Anda perlu API untuk kategori/budget
+        // const budgetResponse = await axios.get('http://localhost:5000/api/budgets?month=...', config);
+
+        setTransactions(transResponse.data);
+        setPendapatan(pendResponse.data);
+        // setBudgetsByMonth(formatDataBudget(budgetResponse.data));
+
+      } catch (error) {
+        console.error("Gagal memuat data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []); // `[]` berarti hanya berjalan sekali saat komponen dimuat
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center">Memuat data...</div>;
+  }
+  // 1. Ubah state awal menjadi kosong
+  const [budgetsByMonth, setBudgetsByMonth] = useState({});
+  const [AkunByMonth, setAkunByMonth] = useState({});
+  const [transactions, setTransactions] = useState([]);
+  const [Pendapatan, setPendapatan] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [activeAddMonthTarget, setActiveAddMonthTarget] = useState(null);
   const [isModalAddMonthOpen, setIsModalAddMonthOpen] = useState(false);
-  const [transactions, setTransactions] = useState(initialTransactions);
-  const [Pendapatan, setPendapatan] = useState(initialPendapatan);
   const [isModalOpen, setModalOpen] = useState(false);
   const [showIconPicker, setShowIconPicker] = useState(false);
   const [selectedIcon, setSelectedIcon] = useState(null);

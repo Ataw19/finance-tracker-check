@@ -1,13 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-const config = {
-  headers: {
-    Authorization: `Bearer ${token_anda_dari_local_storage}`
-  }
-};
+import axios from 'axios';
 
-const { data } = await axios.get('/api/transactions', config);
 const Welcome = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -15,21 +10,27 @@ const Welcome = () => {
 
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
 
-    if (username !== 'admin') {
-      setErrorField('username');
-      return;
-    }
+    try {
+      // Kirim request ke backend
+      const response = await axios.post('http://localhost:5000/api/auth/login', {
+        email: username,
+        password: password,
+      });
 
-    if (password !== '1234') {
-      setErrorField('password');
-      return;
+      // Jika sukses, simpan token dan navigasi
+      if (response.data.token) {
+        localStorage.setItem('userToken', response.data.token);
+        setErrorField(null);
+        navigate('/app');
+      }
+    } catch (error) {
+      console.error("Login gagal:", error.response.data.message);
+      setErrorField('password'); // Tampilkan error di field password
     }
-
-    setErrorField(null);
-    navigate('/app');
+    // Reset error field jika login berhasil
   };
 
   return (
