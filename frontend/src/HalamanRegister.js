@@ -1,25 +1,47 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { register } from './apiservice';
 
 const Register = () => {
-  const [nama, setNama] = useState('');
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
+  // State untuk menangani proses loading, error, dan modal
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
 
-  const navigate = useNavigate();
-
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
-    setShowModal(true); // Tampilkan modal
-  };
+    // Validasi sederhana di frontend
+    if (!email || !password) {
+      setError("Email dan password tidak boleh kosong.");
+      return;
+    }
 
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Panggil API register
+      await register(email, password);
+      // Jika berhasil, tampilkan modal sukses
+      setShowModal(true);
+    } catch (err) {
+      // Jika gagal, tangkap pesan error dari server dan tampilkan
+      setError(err.message);
+    } finally {
+      // Apapun hasilnya, hentikan loading
+      setIsLoading(false);
+    }
+  };
   const handleCloseModal = () => {
     setShowModal(false);
+    // Arahkan ke halaman login setelah modal ditutup
     navigate('/');
   };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-gray-500 to-gray-700 transition-all duration-500">
       <div className="flex flex-col md:flex-row w-full max-w-6xl shadow-xl rounded-xl overflow-hidden">
@@ -36,13 +58,6 @@ const Register = () => {
 
             <form onSubmit={handleRegister} className="space-y-4">
               <input
-                type="text"
-                placeholder="Nama"
-                value={nama}
-                onChange={(e) => setNama(e.target.value)}
-                className="w-full px-4 py-2 rounded-md border border-gray-300 bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400"
-              />
-              <input
                 type="email"
                 placeholder="Email"
                 value={email}
@@ -56,14 +71,17 @@ const Register = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full px-4 py-2 rounded-md border border-gray-300 bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400"
               />
-
+              {/* Tampilkan pesan error dari server di sini */}
+              {error && (
+                <p className="text-sm text-red-500 text-center">{error}</p>
+              )}
               <motion.button
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.95 }}
                 type="submit"
                 className="w-full bg-gradient-to-r from-black via-gray-600 to-gray-700 rounded-md font-semibold shadow-md hover:opacity-90 transition text-white py-2"
               >
-                Daftar
+                {isLoading ? 'Mendaftarkan...' : 'Daftar'}
               </motion.button>
             </form>
 

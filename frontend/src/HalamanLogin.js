@@ -50,47 +50,48 @@ const Welcome = () => {
 
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
-                <input
-                  type="text"
-                  placeholder="Email" // Sebaiknya ganti jadi Email sesuai dengan backend
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="w-full px-4 py-2 rounded-md border border-gray-300 bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400"
-                />
-                {errorField && (
-                  <p className="text-sm text-red-500 mt-1">{error}</p>
-                )}
+                  <input
+                      type="text"
+                      placeholder="Email"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      className="w-full px-4 py-2 rounded-md border border-gray-300 bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400"
+                  />
+                  {/* Pesan error spesifik sudah dihapus dari sini */}
               </div>
 
               <div>
-                <input
-                  type="password"
-                  placeholder="Password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-2 rounded-md border border-gray-300 bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400"
-                />
-                {errorField === 'password' && (
-                  <p className="text-sm text-red-500 mt-1">Password salah</p>
-                )}
+                  <input
+                      type="password"
+                      placeholder="Password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full px-4 py-2 rounded-md border border-gray-300 bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400"
+                  />
+                  {/* Pesan error spesifik sudah dihapus dari sini */}
               </div>
 
               <div
-                onClick={() => navigate('/lupasandi')}
-                className="text-right text-sm text-gray-400 hover:text-gray-600 cursor-pointer"
-                >
-                Lupa sandi?
+                  onClick={() => navigate('/lupasandi')}
+                  className="text-right text-sm text-gray-400 hover:text-gray-600 cursor-pointer"
+                  >
+                  Lupa sandi?
               </div>
-                
+
+              {/* Ini adalah satu-satunya penampil error yang kita butuhkan */}
+              {error && (
+                  <p className="text-sm text-red-500 text-center">{error}</p>
+              )}
+                  
               <motion.button
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.95 }}
-                type="submit"
-                className="w-full bg-gradient-to-r from-black via-gray-600 to-gray-700 rounded-md font-semibold shadow-md hover:opacity-90 transition text-white py-2"
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.95 }}
+                  type="submit"
+                  className="w-full bg-gradient-to-r from-black via-gray-600 to-gray-700 rounded-md font-semibold shadow-md hover:opacity-90 transition text-white py-2"
               >
-                Masuk
+                  Masuk
               </motion.button>
-            </form>
+          </form>
             {error && (
                 <p className="text-sm text-red-500 text-center">{error}</p>
             )}

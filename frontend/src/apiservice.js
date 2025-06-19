@@ -28,7 +28,12 @@ export const login = (email, password) => apiFetch('/auth/login', {
   method: 'POST',
   body: JSON.stringify({ email, password }),
 });
-
+export const register = (email, password) => {
+  return apiFetch('/auth/register', { // Pastikan endpoint-nya '/auth/register'
+    method: 'POST',
+    body: JSON.stringify({ email, password }),
+  });
+};
 // --- TRANSACTIONS (CRUD) ---
 export const getTransactions = () => apiFetch('/transactions');
 export const createTransaction = (data) => apiFetch('/transactions', {
