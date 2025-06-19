@@ -3,7 +3,7 @@ import CurrencyInput from "react-currency-input-field";
 import { Trash } from "lucide-react";
 
 
-const Recent = ({ budgets, akun, transactions, onRowsChange, type, onDelete }) => {
+const Recent = ({ budgets, akun, transactions, onRowsChange, type, onDelete ,onEdit}) => {
   const [rows, setRows] = useState(transactions);
 
   const sortedTransactions = [...rows].sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
@@ -151,13 +151,21 @@ const Recent = ({ budgets, akun, transactions, onRowsChange, type, onDelete }) =
                     />
                   </td>
 
-                  <td className="border">
+                  <td className="border px-2 py-1 text-center">
+                    {/* 2. Tambah tombol Edit */}
                     <button
-                      className="ml-2 text-sm py-1"
+                      className="text-sm text-blue-600 hover:text-blue-800"
+                      onClick={() => onEdit(row)} // Panggil onEdit dengan data baris
+                      title="Edit"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="ml-2 text-sm text-red-600 hover:text-red-800"
                       onClick={() => onDelete(row.id)}
                       title="Hapus"
                     >
-                      <Trash className="w-3.5 h-3 text-black hover:text-gray-600" />
+                      Hapus
                     </button>
                   </td>
                 </tr>

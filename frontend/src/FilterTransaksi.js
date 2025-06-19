@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Trash } from "lucide-react";
 
-function FilterTransaksi({ budgets, akun, onRowsChange, tab, transactions, setTransactions,type ,onDelete}) {
+function FilterTransaksi({ budgets, akun, onRowsChange, tab, transactions, setTransactions,type ,onDelete,onEdit}) {
   const [expandedGroups, setExpandedGroups] = useState({});
   const [sortBy, setSortBy] = useState("date");
   
@@ -203,13 +203,21 @@ function FilterTransaksi({ budgets, akun, onRowsChange, tab, transactions, setTr
                             />
                           </td>
 
-                          <td className="border">
+                          <td className="border px-2 py-1 text-center">
+                            {/* 2. Tambah tombol Edit */}
                             <button
-                              className="ml-2 text-sm py-1"
+                              className="text-sm text-blue-600 hover:text-blue-800"
+                              onClick={() => onEdit(row)} // Panggil onEdit dengan data baris
+                              title="Edit"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              className="ml-2 text-sm text-red-600 hover:text-red-800"
                               onClick={() => onDelete(row.id)}
                               title="Hapus"
                             >
-                              <Trash className="w-3.5 h-3 text-black hover:text-gray-600" />
+                              Hapus
                             </button>
                           </td>
                         </tr>

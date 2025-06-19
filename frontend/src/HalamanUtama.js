@@ -6,13 +6,17 @@ import IconPickerModal from "./IconPickerModal";
 import Recent from './RecentTransaction';
 import FilterTransaksi from './FilterTransaksi';
 import ChartKeuangan from './ChartKeuangan';
+import ModalTransaksi from './ModalTransaksi';
 import { getTransactions, getBudgets, getCategories, deleteTransaction, deleteCategory, setBudget } from './apiservice';
+import { createTransaction, updateTransaction, /*...impor lainnya...*/ } from './apiservice';
 
 function App() {
   const [budgetsByMonth, setBudgetsByMonth] = useState({});
   const [transactions, setTransactions] = useState([]);
   const [pendapatan, setPendapatan] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [isTransactionModalOpen, setTransactionModalOpen] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState(null);
   //Variabel
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const d = new Date();
@@ -192,7 +196,38 @@ const handleIconSelect = (iconPath) => {
     }
   }
 };
-  
+  // Untuk membuka modal dalam mode 'tambah'
+const handleOpenAddTransactionModal = () => {
+  setSelectedTransaction(null); // Kosongkan data, karena ini mode tambah baru
+  setTransactionModalOpen(true);
+};
+
+// Untuk membuka modal dalam mode 'edit'
+const handleOpenEditTransactionModal = (transaction) => {
+  setSelectedTransaction(transaction); // Isi dengan data transaksi yang akan diedit
+  setTransactionModalOpen(true);
+};
+
+// Fungsi yang dipanggil saat tombol 'Simpan' di modal ditekan
+const handleSaveTransaction = async (data) => {
+  try {
+    if (data.id) {
+      // Jika ada ID, berarti ini mode UPDATE
+      // Backend Anda tidak mengizinkan 'type' diubah, jadi kita hapus
+      const { type, ...updateData } = data;
+      await updateTransaction(data.id, updateData);
+    } else {
+      // Jika tidak ada ID, berarti ini mode CREATE
+      await createTransaction(data);
+    }
+    setTransactionModalOpen(false); // Tutup modal
+    fetchData(); // Ambil data terbaru dari server
+    alert('Transaksi berhasil disimpan!');
+  } catch (error) {
+    console.error('Gagal menyimpan transaksi:', error);
+    alert(error.message);
+  }
+};
   const CircularProgress = ({ percentage }) => {
     const pct = Number(percentage); // pastikan tipe number
     const radius = 20;
@@ -572,6 +607,12 @@ const handleIconSelect = (iconPath) => {
             <h1 className="bg-gray-300 rounded-md text-lg md:2xl lg:text-3xl font-bold text-white mx-2 px-2 w-5/6">
               Transaksi
             </h1>
+            <button 
+                    onClick={handleOpenAddTransactionModal}
+                    className="ml-4 bg-blue-500 text-white px-3 py-1 text-sm rounded-md hover:bg-blue-600 shadow"
+                  >
+                    + Tambah
+                  </button>
            {/* Tabs */}
             <div className="border-b border-gray-200 dark:border-gray-700 mb-2">
               <ul className="flex flex-wrap -mb-px text-sm font-medium text-center text-gray-500 dark:text-gray-400">
@@ -600,6 +641,7 @@ const handleIconSelect = (iconPath) => {
                 onRowsChange={handleTransactionsChange}  // <-- pakai handler Pendapatan
                 type={"Budget"}
                 onDelete={handleDeleteTransaction}
+                onEdit={handleOpenEditTransactionModal}
               />
             )}
             {selectedTab === "Harian" && (
@@ -667,6 +709,7 @@ const handleIconSelect = (iconPath) => {
                   transactions={pendapatan} // <-- Diperbaiki (p kecil)
                   onRowsChange={handlePendaptanChange}
                   onDelete={handleDeleteTransaction}
+                  onEdit={handleOpenEditTransactionModal}
                   type={"Akun"}
                   />
               )}
@@ -744,6 +787,13 @@ const handleIconSelect = (iconPath) => {
                     onClose={() => setIsModalAddMonthOpen(false)}
                     onAddMonth={handleAddMonthWrapper}
         />
+        <ModalTransaksi
+        isOpen={isTransactionModalOpen}
+        onClose={() => setTransactionModalOpen(false)}
+        onSave={handleSaveTransaction}
+        initialData={selectedTransaction}
+        categories={categories} /* Kirim daftar kategori ke modal */
+      />
     </div>
   );
 }
