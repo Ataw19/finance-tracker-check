@@ -6,7 +6,7 @@ import IconPickerModal from "./IconPickerModal";
 import Recent from './RecentTransaction';
 import FilterTransaksi from './FilterTransaksi';
 import ChartKeuangan from './ChartKeuangan';
-import { getTransactions, getBudgets, getCategories, deleteTransaction, deleteCategory } from './apiservice';
+import { getTransactions, getBudgets, getCategories, deleteTransaction, deleteCategory, setBudget } from './apiservice';
 
 function App() {
   const [budgetsByMonth, setBudgetsByMonth] = useState({});
@@ -33,13 +33,6 @@ function App() {
   const displayedBudgets = budgets.slice(0, currentBudget * Budgetperpage);
   const hasMoreBudget = budgets.length > displayedBudgets.length;
   
-  const [akunSementara, setAkunSementara] = useState([]);
-  const [selectedMonthAkun, setSelectedMonthAkun] = useState("2025-05");
-  const Akun = AkunByMonth[selectedMonthAkun] || [];
-  const Akunperpage = 5;
-  const [currentAkun, setCurrentAkun] = useState(1);
-  const displayedAkun = Akun.slice(0, currentAkun * Akunperpage);
-  const hasMoreAkun = Akun.length > displayedAkun.length;
   const [selectedItem, setSelectedItem] = useState(null); // bisa untuk akun atau budget
   const [modalType, setModalType] = useState(null); // "budget" atau "akun"
   const [iconTargetType, setIconTargetType] = useState(null);
@@ -80,13 +73,12 @@ function App() {
   }, [fetchData]);
 
   const handleAddMonthWrapper = (newMonth) => {
+  // Cukup sisakan bagian untuk budget
   if (activeAddMonthTarget === "budget") {
     handleAddMonth(newMonth);
-  } else if (activeAddMonthTarget === "akun") {
-    handleAddMonthAkun(newMonth);
   }
   setIsModalAddMonthOpen(false);
-};
+  };
 
   const handleTransactionsChange = (updatedRows) => {
     setTransactions(updatedRows);
@@ -96,85 +88,67 @@ function App() {
     setPendapatan(updatedRows);
   };
 
-  const handleIconSelect = (iconPath) => {
+  // Kode handleIconSelect yang sudah diperbaiki
+const handleIconSelect = (iconPath) => {
   setShowIconPicker(false);
   setSelectedIcon(iconPath);
 
-  if (iconTargetId !== null && iconTargetType !== null) {
-    if (iconTargetType === "budget") {
-      setBudgetsByMonth((prev) => ({
-        ...prev,
-        [selectedMonth]: prev[selectedMonth].map((b) =>
-          b.id === iconTargetId ? { ...b, icon: iconPath } : b
-        ),
-      }));
-    } else if (iconTargetType === "akun") {
-      setAkunByMonth((prev) => ({
-        ...prev,
-        [selectedMonth]: prev[selectedMonth].map((a) =>
-          a.id === iconTargetId ? { ...a, icon: iconPath } : a
-        ),
-      }));
-    }
-
-    setIconTargetId(null);
-    setIconTargetType(null);
+  // Kita hanya mempertahankan logika untuk 'budget'
+  if (iconTargetId !== null && iconTargetType === "budget") {
+    setBudgetsByMonth((prev) => ({
+      ...prev,
+      [selectedMonth]: prev[selectedMonth].map((b) =>
+        b.id === iconTargetId ? { ...b, icon: iconPath } : b
+      ),
+    }));
   }
-}
+
+  // Reset target setelah selesai
+  setIconTargetId(null);
+  setIconTargetType(null);
+};
 
   function handleAddMonth(newMonth) {
   if (budgetsByMonth[newMonth]) {
     alert("Maaf, bulan sudah ada!");
     return;
-  }
+   }
 
-  setBudgetsByMonth(prev => ({
-    ...prev,
-    [newMonth]: []
-  }));
-  setSelectedMonth(newMonth);
-  setModalOpen(false);
-}
-  function handleAddMonthAkun(newMonth) {
-  if (AkunByMonth[newMonth]) {
-    alert("Maaf, bulan sudah ada!");
-    return;
+    setBudgetsByMonth(prev => ({
+     ...prev,
+     [newMonth]: []
+    }));
+    setSelectedMonth(newMonth);
+    setModalOpen(false);
   }
+    {/*function handleAddMonthAkun(newMonth) {
+    if (AkunByMonth[newMonth]) {
+      alert("Maaf, bulan sudah ada!");
+      return;
+    }*/}
 
-  setAkunByMonth(prev => ({
-    ...prev,
-    [newMonth]: []
-  }));
-  setSelectedMonthAkun(newMonth);
-  setModalOpen(false);
-}
+  
   const handleAddBudget = () => {
-  setSelectedItem(null);           // Tidak ada data sebelumnya (bukan edit)
-  setModalType("budget");          // Mode budget
-
-  const akunList = AkunByMonth[selectedMonth] || [];
-  // Tidak perlu pengurangan used karena tidak sedang edit
-  const akunTemp = akunList.map((akun) => ({ ...akun }));
-
-  setAkunSementara(akunTemp);      // ← untuk modal
+  setSelectedItem(null);
+  setModalType("budget");
   setModalOpen(true);
 };
 
   const handleEdit = (item, type) => {
   setSelectedItem(item);
   setModalType(type);
-  if (type === "budget") {
-    const akunList = AkunByMonth[selectedMonth] || [];
+ // if (type === "budget") {
+    //const akunList = AkunByMonth[selectedMonth] || [];
     // Salin akun dan kurangi used sementara jika item sedang diedit
-    const akunTemp = akunList.map((akun) => {
-      const dikurang = item?.akunDipakai?.[akun.name] || 0;
-      return {
-        ...akun,
-        used: (akun.used || 0) - dikurang,
-      };
-    });
-    setAkunSementara(akunTemp); // ← pakai di sini
-  }
+   // const akunTemp = akunList.map((akun) => {
+   //   const dikurang = item?.akunDipakai?.[akun.name] || 0;
+   //   return {
+    //    ...akun,
+   //     used: (akun.used || 0) - dikurang,
+    //  };
+   // });
+  //  setAkunSementara(akunTemp); // ← pakai di sini
+ // }
   setModalOpen(true);
 };
   
@@ -191,23 +165,29 @@ function App() {
     }
 };
 
-  
-  const handleHapusKategori = async (categoryId) => {
+  const handleDeleteTransaction = async (transactionId) => {
   if (window.confirm("Anda yakin ingin menghapus transaksi ini?")) {
     try {
-      // Panggil API untuk menghapus
       await deleteTransaction(transactionId);
-
-      // Update state secara manual agar UI cepat merespons tanpa perlu fetch ulang
+      // Update state secara manual agar UI cepat merespons
       setTransactions(prev => prev.filter(tx => tx.id !== transactionId));
-      setPendapatan(prev => prev.filter(tx => tx.id !== transactionId));
-
-      // Opsional: panggil fetchData() untuk memastikan data 100% sinkron
-      // fetchData(); 
-
+      setPendapatan(prev => prev.filter(p => p.id !== transactionId));
       alert('Transaksi berhasil dihapus.');
     } catch (error) {
       console.error("Gagal menghapus transaksi:", error);
+      alert(error.message);
+    }
+  }
+};
+  
+  const handleHapusKategori = async (categoryId) => {
+  if (window.confirm("Yakin ingin menghapus kategori ini?")) {
+    try {
+      await deleteCategory(categoryId); // <-- PERBAIKI DI SINI
+      fetchData();
+      alert('Kategori berhasil dihapus.');
+    } catch (error) {
+      console.error("Gagal hapus kategori:", error);
       alert(error.message);
     }
   }
@@ -624,110 +604,108 @@ function App() {
             )}
             {selectedTab === "Harian" && (
               <FilterTransaksi
-              budgets={budgetsByMonth}
-              akun = {null}
+              budgets={null}
+              akun={null} // <-- UBAH MENJADI NULL
               tab={"Harian"}
-              transactions={transactions}
-              setTransactions={setTransactions}
-              onRowsChange={handleTransactionsChange}
-              type={"Budget"}
-              onDelete={handleDeleteTransaction}
+              transactions={pendapatan}
+              setTransactions={setPendapatan}
+              onRowsChange={handlePendaptanChange}
+              type={"Akun"}
             />
             )}
             {selectedTab === "Bulanan" && (
               <FilterTransaksi
-              budgets={budgetsByMonth}
-              akun = {null}
+              akun={null} // <-- UBAH MENJADI NULL
               tab={"Bulanan"}
-              transactions={transactions}
-              setTransactions={setTransactions}
-              onRowsChange={handleTransactionsChange}
-              type={"Budget"}
-              onDelete={handleDeleteTransaction}
+              transactions={pendapatan}
+              setTransactions={setPendapatan}
+              onRowsChange={handlePendaptanChange}
+              type={"Akun"}
             />
             )}
             {selectedTab === "Tahunan" && (
               <FilterTransaksi
-              budgets={budgetsByMonth}
-              akun = {null}
+              akun={null} // <-- UBAH MENJADI NULL
               tab={"Tahunan"}
-              transactions={transactions}
-              setTransactions={setTransactions}
-              onRowsChange={handleTransactionsChange}
-              type={"Budget"}
-              onDelete={handleDeleteTransaction}
+              transactions={pendapatan}
+              setTransactions={setPendapatan}
+              onRowsChange={handlePendaptanChange}
+              type={"Akun"}
             />
             )}
           </div>
 
           {/*Tampilan kedua konten tengah*/}
           <div className="flex flex-col mt-10">
-            {/* Title + Table */}
-            <h1 className="bg-gray-300 rounded-md text-lg md:2xl lg:text-3xl font-bold text-white mx-2 px-2 w-5/6">
-              Pendapatan
-            </h1>
-           {/* Tabs */}
-            <div className="border-b border-gray-200 dark:border-gray-700 mb-2">
-              <ul className="flex flex-wrap -mb-px text-sm font-medium text-center text-gray-500 dark:text-gray-400">
-                {["Terkini", "Harian","Bulanan","Tahunan"].map((tab) => (
-                  <li key={tab} className="me-2">
-                    <button
-                      onClick={() => setSelectedTabPendapatan(tab)}
-                      className={`inline-flex items-center justify-center p-4 border-b-2 rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 group ${
-                        selectedTabPendapatan === tab
-                          ? "text-blue-600 border-blue-600 dark:text-blue-500 dark:border-blue-500"
-                          : "border-transparent"
-                      }`}
-                    >
-                      {tab}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            {/* Content berdasarkan tab */}
-            {selectedTabPendapatan === "Terkini" && (
-              <Recent
-                budgets={null} // atau tetap budgetsByMonth kalau mau
-                akun={AkunByMonth}
-                transactions={Pendapatan}          // <-- pakai data Pendapatan
-                onRowsChange={handlePendaptanChange}  // <-- pakai handler Pendapatan
-                type={"Akun"}
-              />
-            )}
-            {selectedTabPendapatan === "Harian" && (
-              <FilterTransaksi
-              budgets = {null}
-              akun = {AkunByMonth}
-              tab={"Harian"}
-              transactions={Pendapatan}
-              setTransactions={setPendapatan}
-              onRowsChange={handlePendaptanChange}
-              type={"Akun"}
-            />
-            )}
-            {selectedTabPendapatan === "Bulanan" && (
-              <FilterTransaksi
-              budgets={null}
-              akun = {AkunByMonth}
-              tab={"Bulanan"}
-              transactions={Pendapatan}
-              setTransactions={setPendapatan}
-              onRowsChange={handlePendaptanChange}
-              type={"Akun"}
-            />
-            )}
-            {selectedTabPendapatan === "Tahunan" && (
-              <FilterTransaksi
-              budgets={null}
-              akun = {AkunByMonth}
-              tab={"Tahunan"}
-              transactions={Pendapatan}
-              setTransactions={setPendapatan}
-              onRowsChange={handlePendaptanChange}
-              type={"Akun"}
-            />
-            )}
+              <h1 className="bg-gray-300 rounded-md text-lg md:2xl lg:text-3xl font-bold text-white mx-2 px-2 w-5/6">
+                  Pendapatan
+              </h1>
+              {/* Tabs */}
+              <div className="border-b border-gray-200 dark:border-gray-700 mb-2">
+                  <ul className="flex flex-wrap -mb-px text-sm font-medium text-center text-gray-500 dark:text-gray-400">
+                  {["Terkini", "Harian", "Bulanan", "Tahunan"].map((tab) => (
+                      <li key={tab} className="me-2">
+                      <button
+                          onClick={() => setSelectedTabPendapatan(tab)}
+                          className={`inline-flex items-center justify-center p-4 border-b-2 rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 group ${
+                          selectedTabPendapatan === tab
+                              ? "text-blue-600 border-blue-600 dark:text-blue-500 dark:border-blue-500"
+                              : "border-transparent"
+                          }`}
+                      >
+                          {tab}
+                      </button>
+                      </li>
+                  ))}
+                  </ul>
+              </div>
+              {/* Content berdasarkan tab */}
+              {selectedTabPendapatan === "Terkini" && (
+                  <Recent
+                  budgets={null}
+                  akun={null} // <-- Diperbaiki
+                  transactions={pendapatan} // <-- Diperbaiki (p kecil)
+                  onRowsChange={handlePendaptanChange}
+                  onDelete={handleDeleteTransaction}
+                  type={"Akun"}
+                  />
+              )}
+              {selectedTabPendapatan === "Harian" && (
+                  <FilterTransaksi
+                  budgets={null}
+                  akun={null} // <-- Diperbaiki
+                  tab={"Harian"}
+                  transactions={pendapatan} // <-- Diperbaiki (p kecil)
+                  setTransactions={setPendapatan}
+                  onRowsChange={handlePendaptanChange}
+                  type={"Akun"}
+                  onDelete={handleDeleteTransaction}
+                  />
+              )}
+              {selectedTabPendapatan === "Bulanan" && (
+                  <FilterTransaksi
+                  budgets={null}
+                  akun={null} // <-- Diperbaiki
+                  tab={"Bulanan"}
+                  transactions={pendapatan} // <-- Diperbaiki (p kecil)
+                  setTransactions={setPendapatan}
+                  onRowsChange={handlePendaptanChange}
+                  type={"Akun"}
+                  onDelete={handleDeleteTransaction}
+                  />
+              )}
+              {selectedTabPendapatan === "Tahunan" && (
+                  <FilterTransaksi
+                  budgets={null}
+                  akun={null} // <-- Diperbaiki
+                  tab={"Tahunan"}
+                  transactions={pendapatan} // <-- Diperbaiki (p kecil)
+                  setTransactions={setPendapatan}
+                  onRowsChange={handlePendaptanChange}
+                  type={"Akun"}
+                  onDelete={handleDeleteTransaction}
+                  />
+              )}
           </div>
         </div>
   
@@ -743,7 +721,7 @@ function App() {
             <h1 className="bg-gray-300 rounded-md text-[13px] md:text-base lg:text-lg font-bold text-white mx-2 px-2 w-full">
               Graph Pendapatan
             </h1>
-            <ChartKeuangan transactions={Pendapatan} type={"Pendapatan"} />
+            <ChartKeuangan transactions={pendapatan} type={"pendapatan"} />
           </div>
         </div>
       </div>
@@ -753,11 +731,10 @@ function App() {
         <ModalBudget
           isOpen={isModalOpen}
           onClose={() => {
-          setModalOpen(false);
-          setSelectedItem(null);
-          setSelectedIcon(null);
-            }}
-          akunList={akunSementara}
+            setModalOpen(false);
+            setSelectedItem(null);
+            setSelectedIcon(null);
+          }}
           initialData={selectedItem}
           onSave={handleSaveBudget}
           type={modalType}
