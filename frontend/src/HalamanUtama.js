@@ -7,7 +7,7 @@ import Recent from './RecentTransaction';
 import FilterTransaksi from './FilterTransaksi';
 import ChartKeuangan from './ChartKeuangan';
 import ModalTransaksi from './ModalTransaksi';
-import { getTransactions, getBudgets, getCategories, deleteTransaction, deleteCategory, setBudget } from './apiservice';
+import { getTransactions, getBudgets, getCategories, deleteTransaction, deleteCategory, setBudget} from './apiservice';
 import { createTransaction, updateTransaction, /*...impor lainnya...*/ } from './apiservice';
 
 function App() {
@@ -212,16 +212,15 @@ const handleOpenEditTransactionModal = (transaction) => {
 const handleSaveTransaction = async (data) => {
   try {
     if (data.id) {
-      // Jika ada ID, berarti ini mode UPDATE
-      // Backend Anda tidak mengizinkan 'type' diubah, jadi kita hapus
-      const { type, ...updateData } = data;
+      // Jika data punya id, artinya kita sedang UPDATE (mengubah)
+      const { type, ...updateData } = data; // Backend tidak mengizinkan 'type' diubah saat edit
       await updateTransaction(data.id, updateData);
     } else {
-      // Jika tidak ada ID, berarti ini mode CREATE
+      // Jika tidak punya id, artinya kita sedang CREATE (tambah baru)
       await createTransaction(data);
     }
-    setTransactionModalOpen(false); // Tutup modal
-    fetchData(); // Ambil data terbaru dari server
+    setTransactionModalOpen(false); // Tutup modal setelah berhasil
+    fetchData(); // Ambil data terbaru dari server agar tampilan update
     alert('Transaksi berhasil disimpan!');
   } catch (error) {
     console.error('Gagal menyimpan transaksi:', error);

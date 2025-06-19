@@ -2,19 +2,19 @@
 
 import React, { useState, useEffect } from 'react';
 
-// Menerima beberapa props: 
-// isOpen: untuk membuka/menutup modal
-// onClose: fungsi untuk menutup modal dari parent
-// onSave: fungsi untuk menyimpan data dari parent
+// Komponen ini menerima beberapa props dari HalamanUtama.js:
+// isOpen: boolean untuk membuka/menutup modal
+// onClose: fungsi untuk menutup modal
+// onSave: fungsi untuk menyimpan data
 // initialData: data transaksi jika dalam mode edit
-// categories: daftar kategori untuk dropdown
+// categories: daftar kategori untuk ditampilkan di dropdown
 const ModalTransaksi = ({ isOpen, onClose, onSave, initialData = null, categories = [] }) => {
   const [formData, setFormData] = useState({
     description: '',
     amount: '',
     transaction_date: new Date().toISOString().slice(0, 10),
     category_id: '',
-    type: 'expense', // Default transaksi adalah 'expense' (pengeluaran)
+    type: 'expense', // Tipe default adalah 'expense' (pengeluaran)
   });
   const [error, setError] = useState('');
 
@@ -26,7 +26,6 @@ const ModalTransaksi = ({ isOpen, onClose, onSave, initialData = null, categorie
         setFormData({
           description: initialData.description || '',
           amount: initialData.amount || '',
-          // Format tanggal agar sesuai dengan input type="date"
           transaction_date: initialData.transaction_date ? new Date(initialData.transaction_date).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10),
           category_id: initialData.category_id || '',
           type: initialData.type || 'expense',
@@ -41,7 +40,7 @@ const ModalTransaksi = ({ isOpen, onClose, onSave, initialData = null, categorie
           type: 'expense',
         });
       }
-      setError(''); // Selalu reset error setiap modal dibuka
+      setError(''); // Selalu hapus pesan error setiap modal dibuka
     }
   }, [initialData, isOpen]);
 
@@ -52,13 +51,12 @@ const ModalTransaksi = ({ isOpen, onClose, onSave, initialData = null, categorie
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Validasi sederhana
     if (!formData.description || !formData.amount || !formData.transaction_date || !formData.category_id) {
       setError('Harap isi semua field.');
       return;
     }
     setError('');
-    // Kirim data kembali ke HalamanUtama.js untuk diproses
+    // Kirim data kembali ke HalamanUtama.js untuk disimpan ke database
     onSave({ ...formData, id: initialData?.id });
   };
 
