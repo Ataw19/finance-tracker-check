@@ -52,17 +52,13 @@ const Welcome = () => {
               <div>
                 <input
                   type="text"
-                  placeholder="Username"
+                  placeholder="Email" // Sebaiknya ganti jadi Email sesuai dengan backend
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className={`w-full px-4 py-2 rounded-md border ${
-                    errorField === 'username' ? 'border-red-500' : 'border-gray-300'
-                  } bg-gray-100 focus:outline-none focus:ring-2 ${
-                    errorField === 'username' ? 'focus:ring-red-400' : 'focus:ring-gray-400'
-                  }`}
+                  className="w-full px-4 py-2 rounded-md border border-gray-300 bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400"
                 />
                 {errorField && (
-                  <p className="text-sm text-red-500 mt-1">Username salah</p>
+                  <p className="text-sm text-red-500 mt-1">{error}</p>
                 )}
               </div>
 
@@ -72,11 +68,7 @@ const Welcome = () => {
                   placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className={`w-full px-4 py-2 rounded-md border ${
-                    errorField === 'password' ? 'border-red-500' : 'border-gray-300'
-                  } bg-gray-100 focus:outline-none focus:ring-2 ${
-                    errorField === 'password' ? 'focus:ring-red-400' : 'focus:ring-gray-400'
-                  }`}
+                  className="w-full px-4 py-2 rounded-md border border-gray-300 bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400"
                 />
                 {errorField === 'password' && (
                   <p className="text-sm text-red-500 mt-1">Password salah</p>
@@ -89,7 +81,7 @@ const Welcome = () => {
                 >
                 Lupa sandi?
               </div>
-
+                
               <motion.button
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.95 }}
@@ -99,6 +91,18 @@ const Welcome = () => {
                 Masuk
               </motion.button>
             </form>
+            {error && (
+                <p className="text-sm text-red-500 text-center">{error}</p>
+            )}
+
+            <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.95 }}
+                type="submit"
+                className="w-full ..."
+            >
+                Masuk
+            </motion.button>
 
             <div
               onClick={() => navigate('/register')}

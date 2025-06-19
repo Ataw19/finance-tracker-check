@@ -433,7 +433,7 @@ function App() {
             )}
           </div>
           {/*Tampilan Konten Kedua bagian kiri */}
-         <div className="flex flex-col w-full mt-7">
+       {/*  <div className="flex flex-col w-full mt-7">
               <div className="flex flex-col">
                 <h1 className="bg-gray-500 rounded-md text-[13px] md:text-base lg:text-lg font-bold text-white px-2 w-3/4">
                   Akun Bulanan
@@ -478,7 +478,7 @@ function App() {
                         <div className="bg-white border rounded-xl px-2 py-1 gap-1 flex flex-col w-full border-gray-300">
                           <div className="flex flex-row">
                             <div className="flex flex-wrap items-center w-5/6">
-                              {/* Icon Picker */}
+                              {/* Icon Picker */} {/*
                               <div>
                                 <div
                                   className={`w-6 h-6 rounded-full border cursor-pointer flex items-center justify-center mr-2 ${
@@ -561,7 +561,7 @@ function App() {
                     );
                   })}
       
-                  {/* Tombol tambah akun */}
+                  {/* Tombol tambah akun */} {/*
                   <button
                     onClick={() => {
                       setModalType("akun")
@@ -583,8 +583,8 @@ function App() {
                 )}
               </div>
         </div>
+        */}
         </div>
-        
         {/* bagian tengah */}
         <div className="w-3/6">
           <div className="flex flex-col">
