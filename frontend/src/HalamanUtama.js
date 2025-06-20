@@ -7,8 +7,8 @@ import Recent from './RecentTransaction';
 import FilterTransaksi from './FilterTransaksi';
 import ChartKeuangan from './ChartKeuangan';
 import ModalTransaksi from './ModalTransaksi';
-import { getTransactions, getBudgets, getCategories, deleteTransaction, deleteCategory, setBudget} from './apiservice';
-import { createTransaction, updateTransaction, /*...impor lainnya...*/ } from './apiservice';
+import ModalKategori from './ModalKategori';
+import { getTransactions, getBudgets, getCategories, deleteTransaction, deleteCategory, setBudget,createTransaction, updateTransaction, createCategory, updateCategory} from './apiservice';
 
 function App() {
   const [budgetsByMonth, setBudgetsByMonth] = useState({});
@@ -17,6 +17,8 @@ function App() {
   const [categories, setCategories] = useState([]);
   const [isTransactionModalOpen, setTransactionModalOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
+  const [isCategoryModalOpen, setCategoryModalOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState(null);
   //Variabel
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const d = new Date();
@@ -196,37 +198,66 @@ const handleIconSelect = (iconPath) => {
     }
   }
 };
-  // Untuk membuka modal dalam mode 'tambah'
-const handleOpenAddTransactionModal = () => {
-  setSelectedTransaction(null); // Kosongkan data, karena ini mode tambah baru
-  setTransactionModalOpen(true);
-};
+    // Untuk membuka modal dalam mode 'tambah'
+  const handleOpenAddTransactionModal = () => {
+    setSelectedTransaction(null); // Kosongkan data, karena ini mode tambah baru
+    setTransactionModalOpen(true);
+  };
 
-// Untuk membuka modal dalam mode 'edit'
-const handleOpenEditTransactionModal = (transaction) => {
-  setSelectedTransaction(transaction); // Isi dengan data transaksi yang akan diedit
-  setTransactionModalOpen(true);
-};
+  // Untuk membuka modal dalam mode 'edit'
+  const handleOpenEditTransactionModal = (transaction) => {
+    setSelectedTransaction(transaction); // Isi dengan data transaksi yang akan diedit
+    setTransactionModalOpen(true);
+  };
 
-// Fungsi yang dipanggil saat tombol 'Simpan' di modal ditekan
-const handleSaveTransaction = async (data) => {
-  try {
-    if (data.id) {
-      // Jika data punya id, artinya kita sedang UPDATE (mengubah)
-      const { type, ...updateData } = data; // Backend tidak mengizinkan 'type' diubah saat edit
-      await updateTransaction(data.id, updateData);
-    } else {
-      // Jika tidak punya id, artinya kita sedang CREATE (tambah baru)
-      await createTransaction(data);
+  // Fungsi yang dipanggil saat tombol 'Simpan' di modal ditekan
+  const handleSaveTransaction = async (data) => {
+    try {
+      if (data.id) {
+        // Jika data punya id, artinya kita sedang UPDATE (mengubah)
+        const { type, ...updateData } = data; // Backend tidak mengizinkan 'type' diubah saat edit
+        await updateTransaction(data.id, updateData);
+      } else {
+        // Jika tidak punya id, artinya kita sedang CREATE (tambah baru)
+        await createTransaction(data);
+      }
+      setTransactionModalOpen(false); // Tutup modal setelah berhasil
+      fetchData(); // Ambil data terbaru dari server agar tampilan update
+      alert('Transaksi berhasil disimpan!');
+    } catch (error) {
+      console.error('Gagal menyimpan transaksi:', error);
+      alert(error.message);
     }
-    setTransactionModalOpen(false); // Tutup modal setelah berhasil
-    fetchData(); // Ambil data terbaru dari server agar tampilan update
-    alert('Transaksi berhasil disimpan!');
-  } catch (error) {
-    console.error('Gagal menyimpan transaksi:', error);
-    alert(error.message);
-  }
-};
+  };
+  const handleOpenAddCategoryModal = () => {
+    setSelectedCategory(null);
+    setCategoryModalOpen(true);
+  };
+
+  const handleOpenEditCategoryModal = (category) => {
+    // Data dari API budget memiliki 'category_id' dan 'category_name'
+    // Kita sesuaikan agar konsisten
+    setSelectedCategory({ id: category.category_id, name: category.category_name });
+    setCategoryModalOpen(true);
+  };
+
+  const handleSaveCategory = async (data) => {
+    try {
+      if (data.id) {
+        // Mode UPDATE
+        await updateCategory(data.id, { name: data.name });
+      } else {
+        // Mode CREATE
+        await createCategory({ name: data.name });
+      }
+      setCategoryModalOpen(false);
+      fetchData(); // Refresh data
+      alert('Kategori berhasil disimpan!');
+    } catch (error) {
+      console.error('Gagal menyimpan kategori:', error);
+      alert(error.message);
+    }
+  };
   const CircularProgress = ({ percentage }) => {
     const pct = Number(percentage); // pastikan tipe number
     const radius = 20;
@@ -386,7 +417,7 @@ const handleSaveTransaction = async (data) => {
                         </div>
                         <div className="w-1/6 flex justify-end items-start">
                           <button
-                            onClick={() => handleEdit(item, "budget")}
+                            onClick={() => handleOpenEditCategoryModal(item)}
                             className="text-gray-500 text-[10px] hover:text-gray-700 ml-auto mr-2"
                           >
                             edit
@@ -429,9 +460,7 @@ const handleSaveTransaction = async (data) => {
   
               {/* Tombol tambah budget */}
               <button
-                    onClick={() => {
-                      handleAddBudget();
-                    }}
+                    onClick={handleOpenAddCategoryModal}
                     className="bg-gray-100 text-gray-300 xl:text-[12px] 2xl:text-[15px] px-5 py-2 rounded hover:bg-gray-500 w-9/12"
                   >
                     + Tambah Kategori
@@ -540,7 +569,7 @@ const handleSaveTransaction = async (data) => {
                                 edit
                               </button>
                               <button
-                                onClick={() => handleHapusKategori(item.category_id)}
+                                onClick={() => handleOpenEditCategoryModal(item)}
                                 className="text-gray-500 text-[10px] hover:text-gray-700"
                               >
                                 X
@@ -792,6 +821,12 @@ const handleSaveTransaction = async (data) => {
         onSave={handleSaveTransaction}
         initialData={selectedTransaction}
         categories={categories} /* Kirim daftar kategori ke modal */
+      />
+      <ModalKategori
+        isOpen={isCategoryModalOpen}
+        onClose={() => setCategoryModalOpen(false)}
+        onSave={handleSaveCategory}
+        initialData={selectedCategory}
       />
     </div>
   );
