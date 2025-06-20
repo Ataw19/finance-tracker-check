@@ -1,14 +1,8 @@
+// src/ChartKeuangan.js (VERSI FINAL YANG SUDAH DIPERBAIKI)
+
 import React, { useState, useMemo } from 'react';
 import { Bar } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-} from 'chart.js';
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -18,87 +12,90 @@ const ChartKeuangan = ({ transactions, type }) => {
     return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
   });
 
-  // Filter transaksi berdasarkan tipe dan bulan
+  // Filter transaksi berdasarkan tipe (income/expense) dan bulan yang dipilih
   const filtered = useMemo(() => {
     return transactions.filter(tx => {
-      const txDate = new Date(tx.date);
+      // Gunakan 'transaction_date' dari API
+      const txDate = new Date(tx.transaction_date);
       const txMonth = `${txDate.getFullYear()}-${String(txDate.getMonth() + 1).padStart(2, '0')}`;
       
-      // Sesuaikan kondisi berdasarkan type:
       if (txMonth !== selectedMonth) return false;
 
-      if (type === "Pendapatan") {
-        // Misal pendapatan ditandai budget == null atau kategori khusus
-        return tx.budget === null || tx.akun !== null;
-      } else if (type === "Pengeluaran") {
-        // Pengeluaran adalah transaksi yang ada kategori budget (bukan pendapatan)
-        return tx.budget !== null && tx.akun == null;
+      // Cek tipe transaksi langsung dari properti 'type'
+      if (type === "pendapatan") {
+        return tx.type === 'income';
+      } else if (type === "pengeluaran") {
+        return tx.type === 'expense';
       }
 
-      return true; // fallback, tampilkan semua
+      return false;
     });
   }, [transactions, selectedMonth, type]);
 
+  // Kelompokkan total berdasarkan nama kategori
   const categoryTotals = useMemo(() => {
     return filtered.reduce((acc, tx) => {
-      const label = type === "Pendapatan" ? tx.akun || "Lain-lain" : tx.category || "Lain-lain";
-      acc[label] = (acc[label] || 0) + (tx.amount || 0);
+      // Gunakan 'category_name' dari API sebagai label
+      const label = tx.category_name || "Lain-lain";
+      acc[label] = (acc[label] || 0) + (Number(tx.amount) || 0);
       return acc;
     }, {});
- }, [filtered, type]);
+  }, [filtered]);
 
+  // Siapkan data untuk ditampilkan di grafik
   const data = useMemo(() => {
     const categories = Object.keys(categoryTotals);
-    const colors = ['#60a5fa', '#f87171', '#34d399', '#fbbf24', '#a78bfa'];
+    const colors = ['#60a5fa', '#f87171', '#34d399', '#fbbf24', '#a78bfa', '#f472b6'];
     return {
-      labels: ['Total'],
-      datasets: categories.map((category, index) => ({
-        label: category,
-        data: [categoryTotals[category]],
-        backgroundColor: colors[index % colors.length],
-      })),
+      labels: categories, // Tampilkan nama kategori di sumbu X
+      datasets: [{
+        label: `Total ${type}`,
+        data: categories.map(cat => categoryTotals[cat]), // Data untuk setiap kategori
+        backgroundColor: colors,
+      }],
     };
-  }, [categoryTotals]);
+  }, [categoryTotals, type]);
 
   const options = useMemo(() => ({
+    indexAxis: 'y', // Membuat bar chart menjadi horizontal agar label mudah dibaca
     responsive: true,
     plugins: {
-      legend: { position: 'top' },
-      title: { display: true, text: `Laporan ${type} (${selectedMonth})` },
+      legend: { display: false }, // Sembunyikan legenda karena sudah jelas dari label
+      title: { display: false },
     },
-  }), [selectedMonth, type]);
-
-  if (filtered.length === 0) {
-    return (
-      <div className="w-full max-w-xl mx-auto py-2">
-        <div className="mb-1">
-          <input
-            type="month"
-            value={selectedMonth}
-            onChange={(e) => setSelectedMonth(e.target.value)}
-            className="border rounded px-3 py-1 bg-gray-100"
-          />
-        </div>
-        <div className="flex justify-center items-center h-10">
-          <p className='text-xl text-red-700'>
-            Tidak ada transaksi {type.toLowerCase()} di bulan ini.
-          </p>
-        </div>
-      </div>
-    );
-  }
+    scales: {
+        x: {
+            ticks: {
+                callback: function(value) {
+                    return 'Rp ' + (value / 1000) + 'k'; // Format sumbu X (misal: Rp 50k)
+                }
+            }
+        }
+    }
+  }), []);
+  
+  const formattedTitle = type.charAt(0).toUpperCase() + type.slice(1);
 
   return (
     <div className="w-full max-w-xl mx-auto py-2">
-      <div className="mb-1">
+      <div className="mb-2 flex justify-between items-center">
+        <p className="font-semibold">{formattedTitle}</p>
         <input
           type="month"
           value={selectedMonth}
           onChange={(e) => setSelectedMonth(e.target.value)}
-          className="border rounded px-3 py-1 bg-gray-100"
+          className="border rounded px-2 py-1 bg-gray-100 text-sm"
         />
       </div>
-      <Bar data={data} options={options} />
+      {filtered.length === 0 ? (
+        <div className="flex justify-center items-center h-48 bg-gray-50 rounded-md">
+          <p className='text-sm text-gray-500'>
+            Tidak ada data {type.toLowerCase()} di bulan ini.
+          </p>
+        </div>
+      ) : (
+        <Bar data={data} options={options} />
+      )}
     </div>
   );
 };

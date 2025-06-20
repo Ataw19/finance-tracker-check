@@ -199,8 +199,8 @@ const handleIconSelect = (iconPath) => {
   }
 };
     // Untuk membuka modal dalam mode 'tambah'
-  const handleOpenAddTransactionModal = () => {
-    setSelectedTransaction(null); // Kosongkan data, karena ini mode tambah baru
+  const handleOpenAddTransactionModal = (type = 'expense') => {
+    setSelectedTransaction({ type }); // Kosongkan data, karena ini mode tambah baru
     setTransactionModalOpen(true);
   };
 
@@ -328,7 +328,30 @@ const handleIconSelect = (iconPath) => {
   
       {/* Tampilan kolom bagian kiri */}
       <div className="py-10 px-10 flex flex-row bg-gray-200">
-        <div className="flex flex-col w-1/6">
+        <div className="flex flex-col w-1/6 mr-8">
+          <div className="bg-black text-white font-bold px-2 py-1 rounded-t-md">
+          Aksi Cepat
+          </div>
+           <div className="flex flex-col p-2 bg-white rounded-b-md shadow-md gap-2">
+                <button
+                    onClick={() => handleOpenAddTransactionModal('income')} // <-- Panggil dengan tipe 'income'
+                    className="w-full text-left p-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
+                >
+                    + Tambah Pendapatan
+                </button>
+                <button
+                    onClick={() => handleOpenAddTransactionModal('expense')} // <-- Panggil dengan tipe 'expense'
+                    className="w-full text-left p-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
+                >
+                    + Tambah Pengeluaran
+                </button>
+                <button
+                    onClick={handleOpenAddCategoryModal}
+                    className="w-full text-left p-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
+                >
+                    + Tambah Kategori
+                </button>
+            </div>
           <div className="flex flex-col">
             <h1 className="bg-gray-500 rounded-md text-[13px] md:text-base lg:text-lg font-bold text-white px-2 w-3/4">
               Kategori Bulanan
@@ -674,34 +697,42 @@ const handleIconSelect = (iconPath) => {
             )}
             {selectedTab === "Harian" && (
               <FilterTransaksi
-              budgets={null}
-              akun={null} // <-- UBAH MENJADI NULL
-              tab={"Harian"}
-              transactions={pendapatan}
-              setTransactions={setPendapatan}
-              onRowsChange={handlePendaptanChange}
-              type={"Akun"}
-            />
+                budgets={budgetsByMonth}
+                akun={null}
+                tab={"Harian"}
+                transactions={transactions} // <-- DIPERBAIKI
+                setTransactions={setTransactions} // <-- DIPERBAIKI
+                onRowsChange={handleTransactionsChange} // <-- DIPERBAIKI
+                type={"Budget"}
+                onDelete={handleDeleteTransaction}
+                onEdit={handleOpenEditTransactionModal}
+              />
             )}
             {selectedTab === "Bulanan" && (
               <FilterTransaksi
-              akun={null} // <-- UBAH MENJADI NULL
-              tab={"Bulanan"}
-              transactions={pendapatan}
-              setTransactions={setPendapatan}
-              onRowsChange={handlePendaptanChange}
-              type={"Akun"}
-            />
+                budgets={budgetsByMonth}
+                akun={null}
+                tab={"Bulanan"}
+                transactions={transactions} // <-- DIPERBAIKI
+                setTransactions={setTransactions} // <-- DIPERBAIKI
+                onRowsChange={handleTransactionsChange} // <-- DIPERBAIKI
+                type={"Budget"}
+                onDelete={handleDeleteTransaction}
+                onEdit={handleOpenEditTransactionModal}
+              />
             )}
             {selectedTab === "Tahunan" && (
               <FilterTransaksi
-              akun={null} // <-- UBAH MENJADI NULL
-              tab={"Tahunan"}
-              transactions={pendapatan}
-              setTransactions={setPendapatan}
-              onRowsChange={handlePendaptanChange}
-              type={"Akun"}
-            />
+                budgets={budgetsByMonth}
+                akun={null}
+                tab={"Tahunan"}
+                transactions={transactions} // <-- DIPERBAIKI
+                setTransactions={setTransactions} // <-- DIPERBAIKI
+                onRowsChange={handleTransactionsChange} // <-- DIPERBAIKI
+                type={"Budget"}
+                onDelete={handleDeleteTransaction}
+                onEdit={handleOpenEditTransactionModal}
+              />
             )}
           </div>
 

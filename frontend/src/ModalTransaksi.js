@@ -37,7 +37,7 @@ const ModalTransaksi = ({ isOpen, onClose, onSave, initialData = null, categorie
           amount: '',
           transaction_date: new Date().toISOString().slice(0, 10),
           category_id: '',
-          type: 'expense',
+          type: initialData?.type || 'expense',
         });
       }
       setError(''); // Selalu hapus pesan error setiap modal dibuka

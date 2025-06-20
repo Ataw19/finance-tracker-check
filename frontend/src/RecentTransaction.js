@@ -57,121 +57,53 @@ const Recent = ({ budgets, akun, transactions, onRowsChange, type, onDelete ,onE
       <table className="table-auto w-full text-sm">
         <thead>
           <tr className="bg-gray-200 text-left">
-            <th className="border px-2 py-1 border-black/40 text-black/50 border-l-transparent">Nama Pengeluaran</th>
+            <th className="border px-2 py-1 border-black/40 text-black/50 border-l-transparent">Nama</th>
             <th className="border px-2 py-1 border-black/40 text-black/50">Total</th>
-            {displayedRows.length > 0 && getBudgetOptions(displayedRows[0].date).length > 0 && (
-              <th className="border px-2 py-1 border-black/40 text-black/50">Kategori</th>
-            )}
-            {displayedRows.length > 0 && getAkunOptions(displayedRows[0].date).length > 0 && (
-              <th className="border px-2 py-1 border-black/40 text-black/50">Akun</th>
-            )}
-            <th className="border px-2 py-1 border-black/40 text-black/50 border-r-transparent">Tanggal</th>
+            <th className="border px-2 py-1 border-black/40 text-black/50">Kategori</th>
+            <th className="border px-2 py-1 border-black/40 text-black/50">Tanggal</th>
+            <th className="border px-2 py-1 border-black/40 text-black/50 border-r-transparent">Aksi</th>
           </tr>
         </thead>
         <tbody>
-            {displayedRows.map((row) => {
-
-              return (
-                <tr key={row.id}>
-                  <td className="border p-0 bg-gray-200 border-opacity-40 border-r-black border-b-black">
-                    <input
-                      type="text"
-                      value={row.name}
-                      onChange={(e) => handleChange(row.id, "name", e.target.value)}
-                      className="w-full outline-none bg-gray-200"
-                    />
-                  </td>
-
-                  <td className="border p-0 bg-gray-200 border-opacity-40 border-r-black border-b-black text-black/60">
-                    <div className="flex items-center w-full px-2">
-                      <CurrencyInput
-                        name="amount"
-                        value={row.amount}
-                        onValueChange={(value) => {
-                          const numericValue = value ? parseInt(value.replace(/\D/g, ""), 10) : 0;
-                          handleChange(row.id, "amount", numericValue);
-                        }}
-                        prefix="Rp. "
-                        decimalsLimit={0}
-                        className="w-full bg-gray-200 outline-none"
-                      />
-                    </div>
-                  </td>
-
-                  {type === "Budget" && (
-                    <td className="border p-0 bg-gray-200 border-opacity-40 border-r-black border-b-black text-black/60">
-                      <select
-                        value={row.category}
-                        onChange={(e) => handleChange(row.id, "category", e.target.value)}
-                        className="w-full outline-none bg-gray-200"
-                      >
-                        {getBudgetOptions(row.date).length === 0 ? (
-                          <option value="">Tidak ada kategori</option>
-                        ) : (
-                          <>
-                            <option value="">Pilih</option>
-                            {getBudgetOptions(row.date).map((b) => (
-                              <option key={b.id} value={b.name}>
-                                {b.name}
-                              </option>
-                            ))}
-                          </>
-                        )}
-                      </select>
-                    </td>
-                  )}
-                  {type === "Akun" && (
-                    <td className="border p-0 bg-gray-200 border-opacity-40 border-r-black border-b-black text-black/60">
-                      <select
-                        value={row.akun}
-                        onChange={(e) => handleChange(row.id, "akun", e.target.value)}
-                        className="w-full outline-none bg-gray-200"
-                      >
-                        {getAkunOptions(row.date).length === 0 ? (
-                          <option value="">Tidak ada Akun</option>
-                        ) : (
-                          <>
-                            <option value="">Pilih</option>
-                            {getAkunOptions(row.date).map((b) => (
-                              <option key={b.id} value={b.name}>
-                                {b.name}
-                              </option>
-                            ))}
-                          </>
-                        )}
-                      </select>
-                    </td>
-                  )}
-                  <td className="border p-0 bg-gray-200 border-opacity-40 border-b-black text-black/60">
-                    <input
-                      type="date"
-                      value={row.date}
-                      onChange={(e) => handleChange(row.id, "date", e.target.value)}
-                      className="w-full outline-none bg-gray-200"
-                    />
-                  </td>
-
-                  <td className="border px-2 py-1 text-center">
-                    {/* 2. Tambah tombol Edit */}
-                    <button
-                      className="text-sm text-blue-600 hover:text-blue-800"
-                      onClick={() => onEdit(row)} // Panggil onEdit dengan data baris
-                      title="Edit"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      className="ml-2 text-sm text-red-600 hover:text-red-800"
-                      onClick={() => onDelete(row.id)}
-                      title="Hapus"
-                    >
-                      Hapus
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
-
+            {displayedRows.map((row) => (
+            <tr key={row.id}>
+              {/* Menampilkan deskripsi sebagai teks biasa */}
+              <td className="border px-2 py-1 bg-gray-200 border-opacity-40 border-r-black border-b-black">{row.description}</td>
+              
+              {/* Menampilkan jumlah dengan format Rupiah */}
+              <td className="border px-2 py-1 bg-gray-200 border-opacity-40 border-r-black border-b-black text-black/60">
+                Rp {Number(row.amount).toLocaleString('id-ID')}
+              </td>
+              
+              {/* Menampilkan nama kategori sebagai teks biasa */}
+              <td className="border px-2 py-1 bg-gray-200 border-opacity-40 border-r-black border-b-black text-black/60">
+                {row.category_name}
+              </td>
+              
+              {/* Menampilkan tanggal dengan format Indonesia */}
+              <td className="border px-2 py-1 bg-gray-200 border-opacity-40 border-b-black text-black/60">
+                {new Date(row.transaction_date).toLocaleDateString("id-ID", { day: 'numeric', month: 'long', year: 'numeric' })}
+              </td>
+              
+              {/* Tombol Aksi (Edit & Hapus) */}
+              <td className="border px-2 py-1 text-center bg-gray-200 border-opacity-40 border-b-black">
+                <button
+                  className="text-sm text-blue-600 hover:underline"
+                  onClick={() => onEdit(row)}
+                  title="Edit"
+                >
+                  Edit
+                </button>
+                <button
+                  className="ml-2 text-sm text-red-600 hover:underline"
+                  onClick={() => onDelete(row.id)}
+                  title="Hapus"
+                >
+                  Hapus
+                </button>
+              </td>
+            </tr>
+          ))}
           {hasMoreRows && (
             <tr>
               <td colSpan="5" className="border px-2 text-left">

@@ -36,7 +36,7 @@ function FilterTransaksi({ budgets, akun, onRowsChange, tab, transactions, setTr
   const groupBy = (data) => {
     const grouped = {};
     data.forEach((item) => {
-      const key = formatGroupKey(item.date);
+      const key = formatGroupKey(item.transaction_date);
       if (!grouped[key]) grouped[key] = [];
       grouped[key].push(item);
     });
@@ -48,7 +48,7 @@ function FilterTransaksi({ budgets, akun, onRowsChange, tab, transactions, setTr
     if (sortBy === "category") return (a.category || "").localeCompare(b.category || "");
     if (sortBy === "akun") return (a.akun || "").localeCompare(b.akun || "");
     if (sortBy === "name") return (a.name || "").localeCompare(b.name || "");
-    return new Date(b.date) - new Date(a.date);
+    return new Date(b.transaction_date) - new Date(a.transaction_date);
   });
 };
   
@@ -100,12 +100,12 @@ function FilterTransaksi({ budgets, akun, onRowsChange, tab, transactions, setTr
 
       {Object.keys(grouped)
         .sort((a, b) => {
-          const dateA = new Date(grouped[a][0].date);
-          const dateB = new Date(grouped[b][0].date);
+          const dateA = new Date(grouped[a][0].transaction_date);
+          const dateB = new Date(grouped[b][0].transaction_date);
           return dateB - dateA;
         })
         .map((groupKey) => {
-          const groupDate = grouped[groupKey][0]?.date;
+          const groupDate = grouped[groupKey][0]?.transaction_date;
           const sortedItems = sortItems(grouped[groupKey]);
           return (
             <div key={groupKey} className="mb-4">
@@ -130,106 +130,34 @@ function FilterTransaksi({ budgets, akun, onRowsChange, tab, transactions, setTr
                       </tr>
                     </thead>
                     <tbody>
-                      {sortedItems.map((row) => (
-                        <tr key={row.id}>
-                          <td className="px-2 py-1 border">
-                            <input
-                              value={row.name}
-                              onChange={(e) => handleChange(row.id, "name", e.target.value)}
-                              className="w-full outline-none bg-transparent"
-                            />
-                          </td>
-                          <td className="px-2 py-1 border">
-                            <input
-                              type="number"
-                              value={row.amount}
-                              onChange={(e) =>
-                                handleChange(row.id, "amount", parseInt(e.target.value) || 0)
-                              }
-                              className="w-full outline-none bg-transparent"
-                            />
-                          </td>
-                          {type === "Budget" && (
-                            <td className="px-2 py-1 border">
-                              <select
-                                value={row.category}
-                                onChange={(e) => handleChange(row.id, "category", e.target.value)}
-                                className="w-full outline-none bg-transparent"
-                              >
-                                {getBudgetOptions(row.date).length === 0 ? (
-                                  <option value="">Tidak ada kategori</option>
-                                ) : (
-                                  <>
-                                    <option value="">Pilih</option>
-                                    {getBudgetOptions(row.date).map((b) => (
-                                      <option key={b.id} value={b.name}>
-                                        {b.name}
-                                      </option>
-                                    ))}
-                                  </>
-                                )}
-                              </select>
-                            </td>
-                          )}
-
-                          {type === "Akun" && (
-                            <td className="px-2 py-1 border">
-                              <select
-                                value={row.akun}
-                                onChange={(e) => handleChange(row.id, "akun", e.target.value)}
-                                className="w-full outline-none bg-transparent"
-                              >
-                               {getAkunOptions(row.date).length === 0 ? (
-                                  <option value="">Tidak ada Akun</option>
-                                ) : (
-                                  <>
-                                    <option value="">Pilih</option>
-                                    {getAkunOptions(row.date).map((b) => (
-                                      <option key={b.id} value={b.name}>
-                                        {b.name}
-                                      </option>
-                                    ))}
-                                  </>
-                                )}
-                              </select>
-                            </td>
-                          )}
-                          <td className="px-2 py-1 border">
-                            <input
-                              type="date"
-                              value={row.date}
-                              onChange={(e) => handleChange(row.id, "date", e.target.value)}
-                              className="w-full outline-none bg-transparent"
-                            />
-                          </td>
-
-                          <td className="border px-2 py-1 text-center">
-                            {/* 2. Tambah tombol Edit */}
-                            <button
-                              className="text-sm text-blue-600 hover:text-blue-800"
-                              onClick={() => onEdit(row)} // Panggil onEdit dengan data baris
-                              title="Edit"
-                            >
-                              Edit
-                            </button>
-                            <button
-                              className="ml-2 text-sm text-red-600 hover:text-red-800"
-                              onClick={() => onDelete(row.id)}
-                              title="Hapus"
-                            >
-                              Hapus
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
+                    {sortedItems.map((row) => (
+                      <tr key={row.id}>
+                        <td className="px-2 py-1 border">{row.description}</td>
+                        <td className="px-2 py-1 border">Rp {Number(row.amount).toLocaleString('id-ID')}</td>
+                        <td className="px-2 py-1 border">{row.category_name}</td>
+                        <td className="px-2 py-1 border">
+                          {new Date(row.transaction_date).toLocaleDateString("id-ID", { day: 'numeric', month: 'long', year: 'numeric' })}
+                        </td>
+                        <td className="border px-2 py-1 text-center">
+                          <button
+                            className="text-sm text-blue-600 hover:underline"
+                            onClick={() => onEdit(row)}
+                            title="Edit"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="ml-2 text-sm text-red-600 hover:underline"
+                            onClick={() => onDelete(row.id)}
+                            title="Hapus"
+                          >
+                            Hapus
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
                   </table>
-                  <button
-                    onClick={() => handleAdd(groupDate)}
-                    className="mt-1 text-sm text-blue-600 hover:underline"
-                  >
-                    + Tambah Transaksi
-                  </button>
                 </>
               )}
             </div>
