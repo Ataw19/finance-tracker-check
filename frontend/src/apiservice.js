@@ -65,3 +65,10 @@ export const setBudget = (data) => apiFetch('/budgets', {
     method: 'POST', // Backend menggunakan POST untuk create/update
     body: JSON.stringify(data)
 });
+
+// --- ACCOUNTS ---
+export const getAccounts = () => apiFetch('/accounts');
+export const createAccount = (data) => apiFetch('/accounts', {
+  method: 'POST',
+  body: JSON.stringify(data),
+});

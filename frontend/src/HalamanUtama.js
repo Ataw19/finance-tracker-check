@@ -8,9 +8,11 @@ import FilterTransaksi from './FilterTransaksi';
 import ChartKeuangan from './ChartKeuangan';
 import ModalTransaksi from './ModalTransaksi';
 import ModalKategori from './ModalKategori';
-import { getTransactions, getBudgets, getCategories, deleteTransaction, deleteCategory, setBudget,createTransaction, updateTransaction, createCategory, updateCategory} from './apiservice';
+import ModalAkun from './ModalAkun';
+import { getTransactions, getBudgets, getCategories, deleteTransaction, deleteCategory, setBudget,createTransaction, updateTransaction, createCategory, updateCategory, createAccount, getAccounts} from './apiservice';
 
 function App() {
+  const [accounts, setAccounts] = useState([]);
   const [budgetsByMonth, setBudgetsByMonth] = useState({});
   const [transactions, setTransactions] = useState([]);
   const [pendapatan, setPendapatan] = useState([]);
@@ -49,12 +51,13 @@ function App() {
     try {
       const [year, month] = selectedMonth.split('-');
       
-      const [budgetData, transactionData, categoryData] = await Promise.all([
+      const [accountData, budgetData, transactionData, categoryData] = await Promise.all([
+        getAccounts(),
         getBudgets(year, month),
         getTransactions(),
         getCategories()
       ]);
-
+      setAccounts(accountData);
       // 3. Proses dan set data ke state
       const budgetMap = { [selectedMonth]: budgetData };
       setBudgetsByMonth(budgetMap);
@@ -258,6 +261,20 @@ const handleIconSelect = (iconPath) => {
       alert(error.message);
     }
   };
+  const [isAccountModalOpen, setAccountModalOpen] = useState(false);
+
+  const handleOpenAddAccountModal = () => setAccountModalOpen(true);
+
+  const handleSaveAccount = async (data) => {
+    try {
+      await createAccount(data);
+      setAccountModalOpen(false);
+      fetchData();
+      alert('Akun baru berhasil ditambahkan!');
+    } catch (error) {
+      alert(error.message);
+    }
+  };
   const CircularProgress = ({ percentage }) => {
     const pct = Number(percentage); // pastikan tipe number
     const radius = 20;
@@ -344,6 +361,12 @@ const handleIconSelect = (iconPath) => {
                     className="w-full text-left p-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
                 >
                     + Tambah Pengeluaran
+                </button>
+                <button
+                    onClick={handleOpenAddAccountModal} 
+                    className="w-full text-left p-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
+                >
+                    + Tambah Akun
                 </button>
                 <button
                     onClick={handleOpenAddCategoryModal}
@@ -658,12 +681,6 @@ const handleIconSelect = (iconPath) => {
             <h1 className="bg-gray-300 rounded-md text-lg md:2xl lg:text-3xl font-bold text-white mx-2 px-2 w-5/6">
               Transaksi
             </h1>
-            <button 
-                    onClick={handleOpenAddTransactionModal}
-                    className="ml-4 bg-blue-500 text-white px-3 py-1 text-sm rounded-md hover:bg-blue-600 shadow"
-                  >
-                    + Tambah
-                  </button>
            {/* Tabs */}
             <div className="border-b border-gray-200 dark:border-gray-700 mb-2">
               <ul className="flex flex-wrap -mb-px text-sm font-medium text-center text-gray-500 dark:text-gray-400">
@@ -825,9 +842,28 @@ const handleIconSelect = (iconPath) => {
             </h1>
             <ChartKeuangan transactions={pendapatan} type={"pendapatan"} />
           </div>
+          <div className="mt-8">
+              <div className="bg-black text-white font-bold px-2 py-1 rounded-t-md">
+                  Daftar Akun
+              </div>
+              <div className="flex flex-col p-2 bg-white rounded-b-md shadow-md gap-2">
+                  {accounts.length > 0 ? (
+                      accounts.map(account => (
+                          <div key={account.id} className="flex justify-between items-center p-2 hover:bg-gray-50 rounded-md">
+                              <span className="text-sm font-medium text-gray-800">{account.name}</span>
+                              <span className="text-sm font-semibold text-gray-900">
+                                  Rp {Number(account.balance).toLocaleString('id-ID')}
+                              </span>
+                          </div>
+                      ))
+                  ) : (
+                      <p className="p-2 text-sm text-gray-500">Belum ada akun. Silakan tambah melalui "Aksi Cepat".</p>
+                  )}
+              </div>
+          </div>
         </div>
       </div>
-
+          
       
         {/* Modal */}
         <ModalBudget
@@ -852,12 +888,18 @@ const handleIconSelect = (iconPath) => {
         onSave={handleSaveTransaction}
         initialData={selectedTransaction}
         categories={categories} /* Kirim daftar kategori ke modal */
+        accounts={accounts}
       />
       <ModalKategori
         isOpen={isCategoryModalOpen}
         onClose={() => setCategoryModalOpen(false)}
         onSave={handleSaveCategory}
         initialData={selectedCategory}
+      />
+      <ModalAkun 
+        isOpen={isAccountModalOpen}
+        onClose={() => setAccountModalOpen(false)}
+        onSave={handleSaveAccount}
       />
     </div>
   );

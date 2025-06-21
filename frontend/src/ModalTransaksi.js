@@ -1,5 +1,3 @@
-// src/ModalTransaksi.js
-
 import React, { useState, useEffect } from 'react';
 
 // Komponen ini menerima beberapa props dari HalamanUtama.js:
@@ -8,12 +6,13 @@ import React, { useState, useEffect } from 'react';
 // onSave: fungsi untuk menyimpan data
 // initialData: data transaksi jika dalam mode edit
 // categories: daftar kategori untuk ditampilkan di dropdown
-const ModalTransaksi = ({ isOpen, onClose, onSave, initialData = null, categories = [] }) => {
+const ModalTransaksi = ({ isOpen, onClose, onSave, initialData = null, categories = [],accounts = [] }) => {
   const [formData, setFormData] = useState({
     description: '',
     amount: '',
     transaction_date: new Date().toISOString().slice(0, 10),
     category_id: '',
+    account_id: '', // Tambahkan akun untuk transaksi
     type: 'expense', // Tipe default adalah 'expense' (pengeluaran)
   });
   const [error, setError] = useState('');
@@ -28,6 +27,7 @@ const ModalTransaksi = ({ isOpen, onClose, onSave, initialData = null, categorie
           amount: initialData.amount || '',
           transaction_date: initialData.transaction_date ? new Date(initialData.transaction_date).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10),
           category_id: initialData.category_id || '',
+          account_id: initialData.account_id || '',
           type: initialData.type || 'expense',
         });
       } else {
@@ -37,6 +37,7 @@ const ModalTransaksi = ({ isOpen, onClose, onSave, initialData = null, categorie
           amount: '',
           transaction_date: new Date().toISOString().slice(0, 10),
           category_id: '',
+          account_id: '', 
           type: initialData?.type || 'expense',
         });
       }
@@ -51,9 +52,14 @@ const ModalTransaksi = ({ isOpen, onClose, onSave, initialData = null, categorie
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!formData.description || !formData.amount || !formData.transaction_date || !formData.category_id) {
-      setError('Harap isi semua field.');
+    if (!formData.description || !formData.amount || !formData.transaction_date || !formData.category_id|| !formData.account_id) {
+      setError('Harap isi semua field, termasuk Akun.');
       return;
+    }
+    // Jika tipe 'expense', kategori wajib diisi
+    if (formData.type === 'expense' && !formData.category_id) {
+        setError('Kategori wajib diisi untuk pengeluaran.');
+        return;
     }
     setError('');
     // Kirim data kembali ke HalamanUtama.js untuk disimpan ke database
@@ -84,6 +90,20 @@ const ModalTransaksi = ({ isOpen, onClose, onSave, initialData = null, categorie
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
               required
             />
+          </div>
+          <div>
+              <label className="block text-sm font-medium text-gray-700">Akun</label>
+              <select
+                name="account_id" value={formData.account_id}
+                onChange={handleChange}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+                required
+              >
+                <option value="">Pilih Akun</option>
+                {accounts.map(acc => (
+                  <option key={acc.id} value={acc.id}>{acc.name} (Rp {Number(acc.balance).toLocaleString('id-ID')})</option>
+                ))}
+              </select>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700">Kategori</label>
