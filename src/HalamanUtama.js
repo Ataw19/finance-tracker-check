@@ -6,9 +6,14 @@ import IconPickerModal from "./IconPickerModal";
 import Recent from './RecentTransaction';
 import FilterTransaksi from './FilterTransaksi';
 import ChartKeuangan from './ChartKeuangan';
+import DropdownAksi from "./DropdownButton";
+import { useNavigate } from 'react-router-dom';
+
+
 function App() {
 
   //Variabel
+  const navigate = useNavigate();
   const [budgetsByMonth, setBudgetsByMonth] = useState({
   "2025-05": [
     { id: 1, name: "Makanan", budgets: 0, used: 0, icon: null },
@@ -248,13 +253,25 @@ function App() {
 };
 
   
-  const handleHapus = (id) => {
-    setBudgetsByMonth((prev) => ({
-      ...prev,
-      [selectedMonth]: (prev[selectedMonth] || []).filter((b) => b.id !== id),
-    }));
-  };
-  
+const handleHapus = (id, month, type) => {
+  if (type === "budget") {
+    setBudgetsByMonth((prev) => {
+      const current = prev[month] || [];
+      return {
+        ...prev,
+        [month]: current.filter((b) => b.id !== id),
+      };
+    });
+  } else if (type === "akun") {
+    setAkunByMonth((prev) => {
+      const current = prev[month] || [];
+      return {
+        ...prev,
+        [month]: current.filter((a) => a.id !== id),
+      };
+    });
+  }
+};
   const CircularProgress = ({ percentage }) => {
     const pct = Number(percentage); // pastikan tipe number
     const radius = 20;
@@ -358,17 +375,26 @@ useEffect(() => {
   //Tampilan
   return (
     <div className="flex-col items-start justify-center min-h-screen bg-gray-200">
-      {/* Tampilan Paling atas garis item */}
-      <div className="flex flex-row w-full bg-black shadow-md">
-        <h1 className="px-5 py-4 text-xl font-bold text-white">=</h1>
-      </div>
-  
       <div className="w-full bg-gray-700 shadow-md text-center py-9 md:py-32 lg:py-32">
         <h1 className="font-semibold text-white mb-4 text-4xl md:text-6xl lg:text-7xl">
           KeuanganKu
         </h1>
       </div>
-  
+      <div className="flex justify-center mt-5">
+        <div className="inline-flex rounded-full overflow-hidden shadow-md border border-gray-500">
+          <button
+            className="bg-gray-500 text-white px-6 py-2 text-sm md:text-base font-medium rounded-l-full"
+          >
+            Transaksi
+          </button>
+          <button
+            onClick={() => navigate("/hutang")}
+            className="bg-white text-gray-500 hover:bg-gray-100 px-6 py-2 text-sm md:text-base font-medium rounded-r-full"
+          >
+            Hutang 
+          </button>
+        </div>
+      </div>
       {/* Tampilan kolom bagian kiri */}
       <div className="py-10 px-10 flex flex-row bg-gray-200">
         <div className="flex flex-col w-1/6">
@@ -448,33 +474,28 @@ useEffect(() => {
                               />
                             )}
                           </div>
-                          <span className="text-[10px] text-left 
+                          <span className="text-[10px] text-left flex items-start
                             md:text-[10px] 
                             lg:text-[10px]
                             xl:text-[11px]
                             2xl:text-[12px]">
                             {item.name}
-                          </span>
+                          </span>                        
                         </div>
                         <div className="w-1/6 flex justify-end items-start">
-                          <button
-                            onClick={() => handleEdit(item, "budget")}
-                            className="text-gray-500 text-[10px] hover:text-gray-700 ml-auto mr-2"
-                          >
-                            edit
-                          </button>
-                          <button
-                            onClick={() => handleHapus(item.id)}
-                            className="text-gray-500 text-[10px] hover:text-gray-700"
-                          >
-                            X
-                          </button>
+                          <DropdownAksi
+                            item={item}
+                            type="budget" // atau "budget"
+                            month={selectedMonth} // format: "2025-06"
+                            handleEdit={(item) => handleEdit(item, "budget")} // atau "budget"
+                            handleHapus={handleHapus}
+                          />
                         </div>
                       </div>
-                      <div className="text-[11px] mt-1 w-fit relative group inline-block cursor-pointer">
+                      <div className="text-[10px] md:text-[10px] lg:text-[10px] xl:text-[11px] 2xl:text-[12px] mt-1 w-fit relative group inline-block cursor-pointer">
                         Rp.{item.budgets}
                         <div className="absolute left-full top-1/2 ml-2 -translate-y-1/2
-                            bg-gray-500 text-white text-[11px] px-2 py-1 rounded 
+                            bg-gray-500 text-white text-[10px] md:text-[10px] lg:text-[10px] xl:text-[11px] 2xl:text-[12px] px-2 py-1 rounded 
                             opacity-0 group-hover:opacity-100 transition-all duration-200 
                             whitespace-nowrap z-10
                             pointer-events-none">
@@ -482,12 +503,12 @@ useEffect(() => {
                         </div>
                       </div>
                       <div className="flex flex-row gap-1 items-center relative w-fit group cursor-pointer">
-                        <div className="text-[11px]">
+                        <div className="text-[10px] md:text-[10px] lg:text-[10px] xl:text-[11px] 2xl:text-[12px]">
                           {percentage.toFixed(0)}%
                         </div>
                         <CircularProgress percentage={percentage} />
                         <div className="absolute left-full top-1/2 ml-2 -translate-y-1/2
-                            bg-gray-500 text-white text-[11px] px-1 py-1 rounded 
+                            bg-gray-500 text-white text-[10px] md:text-[10px] lg:text-[10px] xl:text-[11px] 2xl:text-[12px] px-1 py-1 rounded 
                             opacity-0 group-hover:opacity-100 transition-all duration-200 
                             whitespace-nowrap z-10
                             pointer-events-none">
@@ -504,7 +525,7 @@ useEffect(() => {
                     onClick={() => {
                       handleAddBudget();
                     }}
-                    className="bg-gray-100 text-gray-300 xl:text-[12px] 2xl:text-[15px] px-5 py-2 rounded hover:bg-gray-500 w-9/12"
+                    className="bg-gray-100 text-gray-300 text-[8px] md:text-[10px] xl:text-[12px] 2xl:text-[15px] px-5 py-2 rounded hover:bg-gray-500 w-9/12"
                   >
                     + Tambah Kategori
                   </button>
@@ -512,7 +533,7 @@ useEffect(() => {
             {hasMoreBudget && (
               <button
                 onClick={() => setCurrentBudget(prev => prev + 1)}
-                className="bg-gray-300 text-gray-800 text-sm px-3 py-1 rounded hover:bg-gray-400 mt-3"
+                className="bg-gray-300 text-gray-800 text-[8px] md:text-[10px] xl:text-[12px] 2xl:text-[15px] px-3 py-1 rounded hover:bg-gray-400 mt-3 w-9/12"
               >
                 Tampilkan lebih banyak...
               </button>
@@ -605,24 +626,19 @@ useEffect(() => {
                               </span>
                             </div>
                             <div className="w-1/6 flex justify-end items-start">
-                              <button
-                                onClick={() => handleEdit(item, "akun")}
-                                className="text-gray-500 text-[10px] hover:text-gray-700 ml-auto mr-2"
-                              >
-                                edit
-                              </button>
-                              <button
-                                onClick={() => handleHapus(item.id)}
-                                className="text-gray-500 text-[10px] hover:text-gray-700"
-                              >
-                                X
-                              </button>
+                           <DropdownAksi
+                              item={item}
+                              type="akun" // atau "budget"
+                              month={selectedMonthAkun} // format: "2025-06"
+                              handleEdit={(item) => handleEdit(item, "akun")} // atau "budget"
+                              handleHapus={handleHapus}
+                            />
                             </div>
                           </div>
-                          <div className="text-[11px] mt-1 w-fit relative group inline-block cursor-pointer">
+                          <div className="text-[10px] md:text-[10px] lg:text-[10px] xl:text-[11px] 2xl:text-[12px] mt-1 w-fit relative group inline-block cursor-pointer">
                             Rp.{item.Total}
                             <div className="absolute left-full top-1/2 ml-2 -translate-y-1/2
-                                bg-gray-500 text-white text-[11px] px-2 py-1 rounded 
+                                bg-gray-500 text-white text-[10px] md:text-[10px] lg:text-[10px] xl:text-[11px] 2xl:text-[12px] px-2 py-1 rounded 
                                 opacity-0 group-hover:opacity-100 transition-all duration-200 
                                 whitespace-nowrap z-10
                                 pointer-events-none">
@@ -630,12 +646,12 @@ useEffect(() => {
                             </div>
                           </div>
                           <div className="flex flex-row gap-1 items-center relative w-fit group cursor-pointer">
-                            <div className="text-[11px]">
+                            <div className="text-[10px] md:text-[10px] lg:text-[10px] xl:text-[11px] 2xl:text-[12px]">
                               {percentage.toFixed(0)}%
                             </div>
                             <CircularProgress percentage={percentage} />
                             <div className="absolute left-full top-1/2 ml-2 -translate-y-1/2
-                                bg-gray-500 text-white text-[11px] px-1 py-1 rounded 
+                                bg-gray-500 text-white text-[10px] md:text-[10px] lg:text-[10px] xl:text-[11px] 2xl:text-[12px] px-1 py-1 rounded 
                                 opacity-0 group-hover:opacity-100 transition-all duration-200 
                                 whitespace-nowrap z-10
                                 pointer-events-none">
@@ -654,7 +670,7 @@ useEffect(() => {
                       setSelectedItem(null);
                       setModalOpen(true);
                     }}
-                    className="bg-gray-100 text-gray-300 xl:text-[12px] 2xl:text-[15px] px-5 py-2 rounded hover:bg-gray-500 w-9/12"
+                    className="bg-gray-100 text-gray-300 text-[8px] md:text-[10px] xl:text-[12px] 2xl:text-[15px] px-5 py-2 rounded hover:bg-gray-500 w-9/12"
                   >
                     + Tambah Akun
                   </button>
@@ -662,7 +678,7 @@ useEffect(() => {
                 {hasMoreAkun && (
                   <button
                     onClick={() => setCurrentAkun(prev => prev + 1)}
-                    className="bg-gray-300 text-gray-800 text-sm px-3 py-1 rounded hover:bg-gray-400 mt-3"
+                    className="bg-gray-300 text-gray-800 text-[8px] md:text-[10px] xl:text-[12px] 2xl:text-[15px] px-3 py-1 rounded hover:bg-gray-400 mt-3 w-9/12"
                   >
                     Tampilkan lebih banyak...
                   </button>

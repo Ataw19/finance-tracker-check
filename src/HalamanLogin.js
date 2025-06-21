@@ -23,7 +23,7 @@ const Welcome = () => {
     }
 
     setErrorField(null);
-    navigate('/app');
+    navigate('/Dashboard');
   };
 
   return (

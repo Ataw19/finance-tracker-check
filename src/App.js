@@ -5,6 +5,7 @@ import Welcome from './HalamanLogin';
 import Dashboard from './HalamanUtama'; // Ganti jika nama file lain
 import Register from './HalamanRegister'; // Ganti jika nama file lain
 import LupaSandi from './HalamanLupasandi';
+import Hutang from './HalamanHutang';
 
 const App = () => {
   return (
@@ -13,7 +14,8 @@ const App = () => {
         <Route path="/" element={<Welcome />} />
         <Route path="/register" element={<Register/>} />
         <Route path="/lupasandi" element={<LupaSandi/>} />
-        <Route path="/app" element={<Dashboard />} />
+        <Route path="/hutang" element={<Hutang />} />
+        <Route path="/Dashboard" element={<Dashboard />} />
       </Routes>
     </Router>
   );

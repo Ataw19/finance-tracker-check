@@ -62,6 +62,7 @@ const ChartKeuangan = ({ transactions, type }) => {
 
   const options = useMemo(() => ({
     responsive: true,
+    maintainAspectRatio: false, // biar height tidak proporsional otomatis
     plugins: {
       legend: { position: 'top' },
       title: { display: true, text: `Laporan ${type} (${selectedMonth})` },
@@ -71,16 +72,19 @@ const ChartKeuangan = ({ transactions, type }) => {
   if (filtered.length === 0) {
     return (
       <div className="w-full max-w-xl mx-auto py-2">
-        <div className="mb-1">
+        <div className="px-2 mb-1 w-full">
           <input
             type="month"
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(e.target.value)}
-            className="border rounded px-3 py-1 bg-gray-100"
+            className="w-1/2 max-w-sm border rounded bg-gray-100 
+                      px-2 py-1 text-sm 
+                      appearance-none
+                      sm:text-sm md:text-base 2xl:text-lg"
           />
         </div>
         <div className="flex justify-center items-center h-10">
-          <p className='text-xl text-red-700'>
+          <p className='px-2 text-xs sm:text-xs md:text-base 2xl:text-xl text-red-700'>
             Tidak ada transaksi {type.toLowerCase()} di bulan ini.
           </p>
         </div>
@@ -90,15 +94,19 @@ const ChartKeuangan = ({ transactions, type }) => {
 
   return (
     <div className="w-full max-w-xl mx-auto py-2">
-      <div className="mb-1">
-        <input
-          type="month"
-          value={selectedMonth}
-          onChange={(e) => setSelectedMonth(e.target.value)}
-          className="border rounded px-3 py-1 bg-gray-100"
-        />
-      </div>
-      <Bar data={data} options={options} />
+      <div className="px-2 mb-1 w-full">
+          <input
+            type="month"
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+            className="w-1/2 max-w-sm border rounded bg-gray-100 
+                      px-2 py-1 text-sm 
+                      sm:text-sm md:text-base 2xl:text-lg"
+          />
+        </div>
+        <div className="relative w-full" style={{ height: "300px" }}>
+          <Bar data={data} options={options} />
+        </div>
     </div>
   );
 };
