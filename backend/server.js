@@ -7,7 +7,7 @@ const accountRoutes = require('./routes/accounts');
 const categoryRoutes = require('./routes/categories');
 const budgetRoutes = require('./routes/budgets');
 const transactionRoutes = require('./routes/transactions');
-
+const debtRoutes = require('./routes/debts');
 // Inisialisasi Aplikasi Express
 const app = express();
 
@@ -25,7 +25,7 @@ app.use('/api/accounts', protect, accountRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/budgets', budgetRoutes);
 app.use('/api/transactions', transactionRoutes);
-
+app.use('/api/debts', protect, debtRoutes);
 
 const PORT = process.env.PORT || 5000;
 

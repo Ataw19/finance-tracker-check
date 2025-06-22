@@ -119,14 +119,15 @@ const Recent = ({ budgets, akun, transactions, onRowsChange, type, onDelete ,onE
 
           <tr>
             <td colSpan="5" className="border px-2 text-left border-b-black/40">
-              <button
-                onClick={handleAddRow}
-                className="text-black/40 hover:text-black/80 text-sm"
-              >
-                + Tambah Baris
-              </button>
+                <button
+                    // Panggil fungsi onEdit dengan mengirim 'type' sesuai tabelnya
+                    onClick={() => onEdit({ type: type === 'Budget' ? 'expense' : 'income' })}
+                    className="text-blue-600 hover:text-blue-800 text-sm font-semibold"
+                >
+                    + Tambah {type === 'Budget' ? 'Pengeluaran' : 'Pendapatan'}
+                </button>
             </td>
-          </tr>
+        </tr>
         </tbody>
       </table>
     </div>

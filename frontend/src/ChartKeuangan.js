@@ -1,4 +1,4 @@
-// src/ChartKeuangan.js (VERSI FINAL YANG SUDAH DIPERBAIKI)
+// src/ChartKeuangan.js (VERSI BARU DENGAN GRAFIK VERTIKAL)
 
 import React, { useState, useMemo } from 'react';
 import { Bar } from 'react-chartjs-2';
@@ -12,90 +12,111 @@ const ChartKeuangan = ({ transactions, type }) => {
     return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
   });
 
-  // Filter transaksi berdasarkan tipe (income/expense) dan bulan yang dipilih
+  // 1. Filter transaksi (tidak ada perubahan di sini)
   const filtered = useMemo(() => {
     return transactions.filter(tx => {
-      // Gunakan 'transaction_date' dari API
       const txDate = new Date(tx.transaction_date);
       const txMonth = `${txDate.getFullYear()}-${String(txDate.getMonth() + 1).padStart(2, '0')}`;
-      
       if (txMonth !== selectedMonth) return false;
-
-      // Cek tipe transaksi langsung dari properti 'type'
-      if (type === "pendapatan") {
-        return tx.type === 'income';
-      } else if (type === "pengeluaran") {
-        return tx.type === 'expense';
-      }
-
-      return false;
+      return tx.type === type;
     });
   }, [transactions, selectedMonth, type]);
 
-  // Kelompokkan total berdasarkan nama kategori
+  // 2. Kelompokkan total berdasarkan nama kategori (tidak ada perubahan di sini)
   const categoryTotals = useMemo(() => {
     return filtered.reduce((acc, tx) => {
-      // Gunakan 'category_name' dari API sebagai label
       const label = tx.category_name || "Lain-lain";
       acc[label] = (acc[label] || 0) + (Number(tx.amount) || 0);
       return acc;
     }, {});
   }, [filtered]);
 
-  // Siapkan data untuk ditampilkan di grafik
   const data = useMemo(() => {
-    const categories = Object.keys(categoryTotals);
-    const colors = ['#60a5fa', '#f87171', '#34d399', '#fbbf24', '#a78bfa', '#f472b6'];
+    // Label untuk sumbu bawah (hanya satu, misal: "Total")
+    const labels = [`Laporan ${type} (${selectedMonth})`];
+    
+    const categoryNames = Object.keys(categoryTotals);
+    const colors = ['#3b82f6', '#ef4444', '#22c55e', '#f97316', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'];
+
     return {
-      labels: categories, // Tampilkan nama kategori di sumbu X
-      datasets: [{
-        label: `Total ${type}`,
-        data: categories.map(cat => categoryTotals[cat]), // Data untuk setiap kategori
-        backgroundColor: colors,
-      }],
+      labels: labels,
+      // Buat satu 'dataset' untuk setiap kategori. Ini kunci untuk legenda dan warna yang berbeda.
+      datasets: categoryNames.map((category, index) => ({
+        label: category, // Ini akan menjadi nama di legenda (cth: "Makanan")
+        data: [categoryTotals[category]], // Nilai untuk kategori ini
+        backgroundColor: colors[index % colors.length], // Pilih warna secara berurutan
+        borderRadius: 4,
+      })),
     };
-  }, [categoryTotals, type]);
+  }, [categoryTotals, type, selectedMonth]);
 
   const options = useMemo(() => ({
-    indexAxis: 'y', // Membuat bar chart menjadi horizontal agar label mudah dibaca
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
-      legend: { display: false }, // Sembunyikan legenda karena sudah jelas dari label
-      title: { display: false },
+      legend: {
+        display: true, // Tampilkan legenda
+        position: 'top', // Posisi legenda di atas
+      },
+      title: {
+        display: false, // Judul utama bisa disembunyikan
+      },
+      tooltip: {
+        callbacks: {
+          label: function(context) {
+            let label = context.dataset.label || '';
+            if (label) {
+              label += ': ';
+            }
+            if (context.parsed.y !== null) {
+              label += new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(context.parsed.y);
+            }
+            return label;
+          }
+        }
+      }
     },
     scales: {
-        x: {
-            ticks: {
-                callback: function(value) {
-                    return 'Rp ' + (value / 1000) + 'k'; // Format sumbu X (misal: Rp 50k)
-                }
-            }
+      x: {
+        //stacked: true, // Tumpuk barnya jika ada beberapa data dalam satu label
+      },
+      y: { // Format angka di sumbu vertikal (sekarang sumbu Y)
+        //stacked: true,
+        ticks: {
+          callback: function(value) {
+            if (value >= 1000000) return 'Rp ' + (value / 1000000) + 'jt';
+            if (value >= 1000) return 'Rp ' + (value / 1000) + 'k';
+            return 'Rp ' + value;
+          }
         }
+      }
     }
   }), []);
   
   const formattedTitle = type.charAt(0).toUpperCase() + type.slice(1);
 
   return (
-    <div className="w-full max-w-xl mx-auto py-2">
-      <div className="mb-2 flex justify-between items-center">
-        <p className="font-semibold">{formattedTitle}</p>
+    <div className="w-full bg-white p-4 rounded-lg shadow">
+      <div className="mb-4 flex justify-between items-center">
+        <p className="font-semibold text-lg text-gray-800">{`Grafik ${formattedTitle}`}</p>
         <input
           type="month"
           value={selectedMonth}
           onChange={(e) => setSelectedMonth(e.target.value)}
-          className="border rounded px-2 py-1 bg-gray-100 text-sm"
+          className="border rounded px-2 py-1 bg-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
-      {filtered.length === 0 ? (
-        <div className="flex justify-center items-center h-48 bg-gray-50 rounded-md">
-          <p className='text-sm text-gray-500'>
-            Tidak ada data {type.toLowerCase()} di bulan ini.
-          </p>
-        </div>
-      ) : (
-        <Bar data={data} options={options} />
-      )}
+      <div className="relative h-64"> {/* Beri tinggi yang tetap untuk canvas grafik */}
+        {filtered.length === 0 ? (
+          <div className="flex justify-center items-center h-full">
+            <p className='text-sm text-gray-500'>
+              Tidak ada data {type.toLowerCase()} di bulan ini.
+            </p>
+          </div>
+        ) : (
+          <Bar data={data} options={options} />
+        )}
+      </div>
     </div>
   );
 };

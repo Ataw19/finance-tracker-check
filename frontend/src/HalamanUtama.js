@@ -9,9 +9,12 @@ import ChartKeuangan from './ChartKeuangan';
 import ModalTransaksi from './ModalTransaksi';
 import ModalKategori from './ModalKategori';
 import ModalAkun from './ModalAkun';
+import { useNavigate } from 'react-router-dom';
+import DropdownAksi from "./DropdownButton";
 import { getTransactions, getBudgets, getCategories, deleteTransaction, deleteCategory, setBudget,createTransaction, updateTransaction, createCategory, updateCategory, createAccount, getAccounts} from './apiservice';
 
 function App() {
+  const navigate = useNavigate();
   const [accounts, setAccounts] = useState([]);
   const [budgetsByMonth, setBudgetsByMonth] = useState({});
   const [transactions, setTransactions] = useState([]);
@@ -342,39 +345,24 @@ const handleIconSelect = (iconPath) => {
           KeuanganKu
         </h1>
       </div>
-  
+      <div className="flex justify-center mt-5">
+        <div className="inline-flex rounded-full overflow-hidden shadow-md border border-gray-500">
+          <button
+            className="bg-gray-500 text-white px-6 py-2 text-sm md:text-base font-medium rounded-l-full"
+          >
+            Transaksi
+          </button>
+          <button
+            onClick={() => navigate("/hutang")}
+            className="bg-white text-gray-500 hover:bg-gray-100 px-6 py-2 text-sm md:text-base font-medium rounded-r-full"
+          >
+            Hutang 
+          </button>
+        </div>
+      </div>
       {/* Tampilan kolom bagian kiri */}
       <div className="py-10 px-10 flex flex-row bg-gray-200">
         <div className="flex flex-col w-1/6 mr-8">
-          <div className="bg-black text-white font-bold px-2 py-1 rounded-t-md">
-          Aksi Cepat
-          </div>
-           <div className="flex flex-col p-2 bg-white rounded-b-md shadow-md gap-2">
-                <button
-                    onClick={() => handleOpenAddTransactionModal('income')} // <-- Panggil dengan tipe 'income'
-                    className="w-full text-left p-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
-                >
-                    + Tambah Pendapatan
-                </button>
-                <button
-                    onClick={() => handleOpenAddTransactionModal('expense')} // <-- Panggil dengan tipe 'expense'
-                    className="w-full text-left p-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
-                >
-                    + Tambah Pengeluaran
-                </button>
-                <button
-                    onClick={handleOpenAddAccountModal} 
-                    className="w-full text-left p-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
-                >
-                    + Tambah Akun
-                </button>
-                <button
-                    onClick={handleOpenAddCategoryModal}
-                    className="w-full text-left p-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
-                >
-                    + Tambah Kategori
-                </button>
-            </div>
           <div className="flex flex-col">
             <h1 className="bg-gray-500 rounded-md text-[13px] md:text-base lg:text-lg font-bold text-white px-2 w-3/4">
               Kategori Bulanan
@@ -522,157 +510,40 @@ const handleIconSelect = (iconPath) => {
             )}
           </div>
           {/*Tampilan Konten Kedua bagian kiri */}
-       {/*  <div className="flex flex-col w-full mt-7">
-              <div className="flex flex-col">
-                <h1 className="bg-gray-500 rounded-md text-[13px] md:text-base lg:text-lg font-bold text-white px-2 w-3/4">
-                  Akun Bulanan
-                </h1>
-                <div className="mb-4 py-2">
-                  <label htmlFor="month-select" className="text-sm font-semibold mr-2 text-gray-700">
-                    Pilih Bulan:
-                  </label>
-                  <select
-                    value={selectedMonthAkun}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      if (val === "add_new") {
-                        setIsModalAddMonthOpen(true);
-                        setActiveAddMonthTarget("akun"); 
-                      } else {
-                        setSelectedMonthAkun(val);
-                      }
-                    }}
-                  >
-                    {Object.keys(AkunByMonth)
-                      .sort((a, b) => new Date(a) - new Date(b))
-                      .map((month) => (
-                        <option key={month} value={month}>
-                          {formatMonth(month)}
-                        </option>
-                      ))
-                    }
-                    <option value="add_new">+ Tambah Bulan</option>
-                  </select>
-                </div>
-                <div className="flex flex-wrap gap-3 py-1 w-full">
-                  {displayedAkun.map((item) => {
-                    const percentage =
-                      item.Total > 0 ? ((item.used || 0) / item.Total) * 100 : 0;
-      
-                    return (
-                      <div
-                        key={item.id}
-                        className="w-4/6 sm:w-4/6 lg:w-2/3"
-                      >
-                        <div className="bg-white border rounded-xl px-2 py-1 gap-1 flex flex-col w-full border-gray-300">
-                          <div className="flex flex-row">
-                            <div className="flex flex-wrap items-center w-5/6">
-                              {/* Icon Picker */} {/*
-                              <div>
-                                <div
-                                  className={`w-6 h-6 rounded-full border cursor-pointer flex items-center justify-center mr-2 ${
-                                    item.icon ? "border-none" : "bg-gray-300"
-                                  }`}
-                                  onClick={() => {
-                                    setIconTargetType("akun");
-                                    setIconTargetId(item.id);
-                                    setShowIconPicker(true);
-                                  }}
-                                >
-                                  {item.icon ? (
-                                    <img
-                                      src={item.icon}
-                                      alt="Selected Icon"
-                                      className="w-full h-full object-cover rounded-full"
-                                    />
-                                  ) : (
-                                    <span className="text-gray-500">+</span>
-                                  )}
-                                </div>
-                                {showIconPicker && (
-                                  <IconPickerModal
-                                    onSelect={(icon) => {
-                                      console.log("Icon saat ini:", selectedIcon);
-                                      handleIconSelect(icon);
-                                    }}
-                                    onClose={() => setShowIconPicker(false)}
-                                  />
-                                )}
-                              </div>
-                              <span className="text-[10px] text-left 
-                                md:text-[10px] 
-                                lg:text-[10px]
-                                xl:text-[11px]
-                                2xl:text-[12px]">
-                                {item.name}
-                              </span>
-                            </div>
-                            <div className="w-1/6 flex justify-end items-start">
-                              <button
-                                onClick={() => handleEdit(item, "akun")}
-                                className="text-gray-500 text-[10px] hover:text-gray-700 ml-auto mr-2"
-                              >
-                                edit
-                              </button>
-                              <button
-                                onClick={() => handleOpenEditCategoryModal(item)}
-                                className="text-gray-500 text-[10px] hover:text-gray-700"
-                              >
-                                X
-                              </button>
-                            </div>
-                          </div>
-                          <div className="text-[11px] mt-1 w-fit relative group inline-block cursor-pointer">
-                            Rp.{item.Total}
-                            <div className="absolute left-full top-1/2 ml-2 -translate-y-1/2
-                                bg-gray-500 text-white text-[11px] px-2 py-1 rounded 
-                                opacity-0 group-hover:opacity-100 transition-all duration-200 
-                                whitespace-nowrap z-10
-                                pointer-events-none">
-                              Jumlah 
-                            </div>
-                          </div>
-                          <div className="flex flex-row gap-1 items-center relative w-fit group cursor-pointer">
-                            <div className="text-[11px]">
-                              {percentage.toFixed(0)}%
-                            </div>
-                            <CircularProgress percentage={percentage} />
-                            <div className="absolute left-full top-1/2 ml-2 -translate-y-1/2
-                                bg-gray-500 text-white text-[11px] px-1 py-1 rounded 
-                                opacity-0 group-hover:opacity-100 transition-all duration-200 
-                                whitespace-nowrap z-10
-                                pointer-events-none">
-                              Pemakaian
-                            </div>
-                          </div>
+            <h1 className="bg-gray-500 rounded-md text-[13px] md:text-base lg:text-lg font-bold text-white px-2 w-3/4">
+            Daftar Akun
+        </h1>
+        <div className="flex flex-wrap gap-3 py-1 w-full">
+            {accounts.length > 0 ? (
+                accounts.map(account => (
+                    // Kita gunakan gaya yang sama seperti Kategori
+                    <div key={account.id} className="w-4/6 sm:w-4/6 lg:w-2/3">
+                        <div className="bg-white border rounded-xl px-2 py-2 gap-1 flex flex-col w-full border-gray-300">
+                           <div className="flex flex-row justify-between items-center">
+                                <span className="text-sm font-medium text-gray-800">{account.name}</span>
+                                {/* DropdownAksi untuk Akun (fungsi edit/hapus bisa ditambahkan nanti) */}
+                                <DropdownAksi
+                                    onEdit={() => alert(`Edit Akun: ${account.name}`)}
+                                    onDelete={() => alert(`Hapus Akun: ${account.name}`)}
+                                />
+                           </div>
+                           <span className="text-sm font-semibold text-gray-900">
+                                Rp {Number(account.balance).toLocaleString('id-ID')}
+                           </span>
                         </div>
-                      </div>
-                    );
-                  })}
-      
-                  {/* Tombol tambah akun */} {/*
-                  <button
-                    onClick={() => {
-                      setModalType("akun")
-                      setSelectedItem(null);
-                      setModalOpen(true);
-                    }}
-                    className="bg-gray-100 text-gray-300 xl:text-[12px] 2xl:text-[15px] px-5 py-2 rounded hover:bg-gray-500 w-9/12"
-                  >
-                    + Tambah Akun
-                  </button>
-                </div>
-                {hasMoreAkun && (
-                  <button
-                    onClick={() => setCurrentAkun(prev => prev + 1)}
-                    className="bg-gray-300 text-gray-800 text-sm px-3 py-1 rounded hover:bg-gray-400 mt-3"
-                  >
-                    Tampilkan lebih banyak...
-                  </button>
-                )}
-              </div>
-        </div>
-        */}
+                    </div>
+                    ))
+            ) : (
+                <p className="p-2 text-sm text-gray-500">Belum ada akun.</p>
+            )}
+            {/* Tombol Tambah Akun */}
+            <button
+                onClick={handleOpenAddAccountModal}
+                className="bg-gray-100 text-gray-400 text-sm px-5 py-2 rounded-xl hover:bg-gray-200 w-4/6 sm:w-4/6 lg:w-2/3"
+            >
+                + Tambah Akun
+            </button>
+            </div>
         </div>
         {/* bagian tengah */}
         <div className="w-3/6">
@@ -834,32 +705,13 @@ const handleIconSelect = (iconPath) => {
             <h1 className="bg-gray-300 rounded-md text-[13px] md:text-base lg:text-lg font-bold text-white mx-2 px-2 w-full">
               Graph Pengeluaran
             </h1>
-            <ChartKeuangan transactions={transactions} type={"pengeluaran"} />
+            <ChartKeuangan transactions={transactions} type={"expense"} />
           </div>
           <div className="flex flex-col mt-5">
             <h1 className="bg-gray-300 rounded-md text-[13px] md:text-base lg:text-lg font-bold text-white mx-2 px-2 w-full">
               Graph Pendapatan
             </h1>
-            <ChartKeuangan transactions={pendapatan} type={"pendapatan"} />
-          </div>
-          <div className="mt-8">
-              <div className="bg-black text-white font-bold px-2 py-1 rounded-t-md">
-                  Daftar Akun
-              </div>
-              <div className="flex flex-col p-2 bg-white rounded-b-md shadow-md gap-2">
-                  {accounts.length > 0 ? (
-                      accounts.map(account => (
-                          <div key={account.id} className="flex justify-between items-center p-2 hover:bg-gray-50 rounded-md">
-                              <span className="text-sm font-medium text-gray-800">{account.name}</span>
-                              <span className="text-sm font-semibold text-gray-900">
-                                  Rp {Number(account.balance).toLocaleString('id-ID')}
-                              </span>
-                          </div>
-                      ))
-                  ) : (
-                      <p className="p-2 text-sm text-gray-500">Belum ada akun. Silakan tambah melalui "Aksi Cepat".</p>
-                  )}
-              </div>
+            <ChartKeuangan transactions={pendapatan} type={"income"} />
           </div>
         </div>
       </div>
