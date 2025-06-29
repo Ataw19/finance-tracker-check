@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Trash } from "lucide-react";
 
-function FilterTransaksi({ budgets, akun, onRowsChange, tab, transactions, setTransactions,type ,onDelete,onEdit}) {
+function FilterTransaksi({ budgets, akun, tab, transactions, setTransactions,type ,onDelete,onEdit}) {
   const [expandedGroups, setExpandedGroups] = useState({});
   const [sortBy, setSortBy] = useState("date");
   
@@ -61,13 +61,6 @@ function FilterTransaksi({ budgets, akun, onRowsChange, tab, transactions, setTr
     }));
   };
 
-  const handleChange = (id, field, value) => {
-    const updated = transactions.map((item) =>
-      item.id === id ? { ...item, [field]: value } : item
-    );
-    setTransactions(updated);
-    onRowsChange(updated);
-  };
 
   const handleAdd = (date) => {
     const newItem = {
@@ -79,7 +72,7 @@ function FilterTransaksi({ budgets, akun, onRowsChange, tab, transactions, setTr
     };
     const updated = [newItem, ...transactions];
     setTransactions(updated);
-    onRowsChange(updated);
+    
   };
 
   return (

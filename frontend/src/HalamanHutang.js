@@ -1,70 +1,95 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback  } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getDebts, createDebt, deleteDebt, markDebtAsPaid } from './apiservice';
 
 function HalamanHutang() {
-  const navigate = useNavigate();
+const navigate = useNavigate();
 
-  const [data, setData] = useState([
-    {
-      id: 1,
-      nama: 'Budi',
-      nominal: 1000000,
-      jenis: 'hutang',
-      status: 'belum lunas',
-      jatuhTempo: '2025-06-18',
-    },
-    {
-      id: 2,
-      nama: 'Ani',
-      nominal: 500000,
-      jenis: 'piutang',
-      status: 'lunas',
-      jatuhTempo: '2025-06-10',
-    },
-  ]);
-
+  // State untuk menampung data dari API
+  const [data, setData] = useState([]);
+  // State untuk form input
   const [form, setForm] = useState({
-    nama: '',
-    nominal: '',
-    jenis: '',
-    jatuhTempo: '',
+    person_name: '',
+    amount: '',
+    type: 'hutang', // Default ke hutang
+    due_date: '',
+    notes: '',
   });
+  // State untuk loading dan error
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fungsi untuk mengambil data dari server
+  const fetchDebts = useCallback(async () => {
+    try {
+      const debtsData = await getDebts();
+      setData(debtsData);
+    } catch (err) {
+      setError('Gagal memuat data hutang.');
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // Ambil data saat komponen pertama kali dimuat
+  useEffect(() => {
+    fetchDebts();
+  }, [fetchDebts]);
+
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  // Fungsi untuk menambah data baru melalui API
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const newEntry = {
-      id: Date.now(),
-      ...form,
-      nominal: Number(form.nominal),
-      status: 'belum lunas',
-    };
-    setData([newEntry, ...data]);
-    setForm({ nama: '', nominal: '', jenis: '', jatuhTempo: '' });
+    try {
+      await createDebt({
+        ...form,
+        amount: Number(form.amount)
+      });
+      // Setelah berhasil, kosongkan form dan ambil ulang data
+      setForm({ person_name: '', amount: '', type: 'hutang', due_date: '', notes: '' });
+      fetchDebts();
+    } catch (err) {
+      alert(err.message); // Tampilkan error jika ada
+    }
   };
 
-  const handleLunas = (id) => {
-    setData((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, status: 'lunas' } : item
-      )
-    );
+  // Fungsi untuk menandai lunas melalui API
+  const handleLunas = async (id) => {
+    try {
+      await markDebtAsPaid(id);
+      fetchDebts(); // Refresh data
+    } catch (err) {
+      alert(err.message);
+    }
   };
 
-  const handleHapus = (id) => {
-    setData((prev) => prev.filter((item) => item.id !== id));
+  // Fungsi untuk menghapus data melalui API
+  const handleHapus = async (id) => {
+    if (window.confirm('Anda yakin ingin menghapus data ini?')) {
+      try {
+        await deleteDebt(id);
+        fetchDebts(); // Refresh data
+      } catch (err) {
+        alert(err.message);
+      }
+    }
   };
 
+  // Fungsi isDueSoon tidak perlu diubah
   const isDueSoon = (dateStr) => {
-    const today = new Date();
-    const dueDate = new Date(dateStr);
-    const diffDays = (dueDate - today) / (1000 * 60 * 60 * 24);
-    return diffDays <= 3 && diffDays >= 0;
+      // ...
   };
+  
+  // Tampilan loading
+  if (isLoading) {
+    return <div className="text-center p-10">Loading data...</div>;
+  }
 
   return (
     <div className="flex-col items-start justify-center min-h-screen bg-gray-200 pb-20">
@@ -94,47 +119,15 @@ function HalamanHutang() {
         <h1 className="text-2xl text-center font-semibold mb-6">Hutang & Piutang</h1>
 
         <form className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6" onSubmit={handleSubmit}>
-          <input
-            name="nama"
-            value={form.nama}
-            onChange={handleInputChange}
-            type="text"
-            placeholder="Nama Pihak"
-            required
-            className="p-2 border rounded"
-          />
-          <input
-            name="nominal"
-            value={form.nominal}
-            onChange={handleInputChange}
-            type="number"
-            placeholder="Nominal (Rp)"
-            required
-            className="p-2 border rounded"
-          />
-          <select
-            name="jenis"
-            value={form.jenis}
-            onChange={handleInputChange}
-            required
-            className="p-2 border rounded"
-          >
-            <option value="">Pilih Jenis</option>
-            <option value="hutang">Hutang</option>
-            <option value="piutang">Piutang</option>
+          <input name="person_name" value={form.person_name} onChange={handleInputChange} type="text" placeholder="Nama Pihak" required className="p-2 border rounded" />
+          <input name="amount" value={form.amount} onChange={handleInputChange} type="number" placeholder="Nominal (Rp)" required className="p-2 border rounded" />
+          <select name="type" value={form.type} onChange={handleInputChange} required className="p-2 border rounded">
+            {/* Ganti 'jenis' menjadi 'type' */}
+            <option value="hutang">Hutang (Saya berhutang)</option>
+            <option value="piutang">Piutang (Orang lain berhutang ke saya)</option>
           </select>
-          <input
-            name="jatuhTempo"
-            value={form.jatuhTempo}
-            onChange={handleInputChange}
-            type="date"
-            required
-            className="p-2 border rounded"
-          />
-          <button
-            type="submit"
-            className="col-span-1 md:col-span-2 bg-gray-500 hover:bg-gray-600 text-white py-2 rounded"
-          >
+          <input name="due_date" value={form.due_date} onChange={handleInputChange} type="date" className="p-2 border rounded" />
+          <button type="submit" className="col-span-1 md:col-span-2 bg-gray-500 hover:bg-gray-600 text-white py-2 rounded">
             Tambah
           </button>
         </form>
@@ -152,19 +145,12 @@ function HalamanHutang() {
           </thead>
           <tbody>
             {data.map((item) => (
-              <tr
-                key={item.id}
-                className={isDueSoon(item.jatuhTempo) && item.status === 'belum lunas' ? 'bg-yellow-100' : ''}
-              >
-                <td className="p-2 border-b">{item.nama}</td>
-                <td className="p-2 border-b">Rp {item.nominal.toLocaleString()}</td>
+              <tr key={item.id} className={isDueSoon(item.due_date) && item.status === 'belum lunas' ? 'bg-yellow-100' : ''}>
+                <td className="p-2 border-b">{item.person_name}</td>
+                <td className="p-2 border-b">Rp {item.amount.toLocaleString()}</td>
                 <td className="p-2 border-b">
-                  <span
-                    className={`text-white text-xs px-2 py-1 rounded ${
-                      item.jenis === 'hutang' ? 'bg-red-500' : 'bg-blue-500'
-                    }`}
-                  >
-                    {item.jenis.charAt(0).toUpperCase() + item.jenis.slice(1)}
+                  <span className={`text-white text-xs px-2 py-1 rounded ${item.type === 'hutang' ? 'bg-red-500' : 'bg-blue-500'}`}>
+                    {item.type.charAt(0).toUpperCase() + item.type.slice(1)}
                   </span>
                 </td>
                 <td className="p-2 border-b">
@@ -176,38 +162,19 @@ function HalamanHutang() {
                     {item.status === 'lunas' ? 'Lunas' : 'Belum Lunas'}
                   </span>
                 </td>
-                <td className="p-2 border-b">{item.jatuhTempo}</td>
+                <td className="p-2 border-b">{item.due_date ? new Date(item.due_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '-'}</td>
                 <td className="p-2 border-b">
                   {item.status === 'belum lunas' ? (
-                    <button
-                      onClick={() => handleLunas(item.id)}
-                      className="text-sm bg-green-500 text-white px-2 py-1 mr-1 rounded"
-                    >
-                      Tandai Lunas
-                    </button>
+                    <button onClick={() => handleLunas(item.id)} className="text-sm bg-green-500 text-white px-2 py-1 mr-1 rounded">Tandai Lunas</button>
                   ) : (
-                    <button
-                      disabled
-                      className="text-sm bg-gray-300 text-white px-2 py-1 mr-1 rounded"
-                    >
-                      Selesai
-                    </button>
+                    <button disabled className="text-sm bg-gray-300 text-white px-2 py-1 mr-1 rounded">Selesai</button>
                   )}
-                  <button
-                    onClick={() => handleHapus(item.id)}
-                    className="text-sm bg-red-500 text-white px-2 py-1 rounded"
-                  >
-                    Hapus
-                  </button>
+                  <button onClick={() => handleHapus(item.id)} className="text-sm bg-red-500 text-white px-2 py-1 rounded">Hapus</button>
                 </td>
               </tr>
             ))}
             {data.length === 0 && (
-              <tr>
-                <td colSpan="6" className="text-center p-4 text-gray-500">
-                  Belum ada data.
-                </td>
-              </tr>
+              <tr><td colSpan="6" className="text-center p-4 text-gray-500">Belum ada data.</td></tr>
             )}
           </tbody>
         </table>

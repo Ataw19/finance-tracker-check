@@ -1,8 +1,7 @@
 
 import ModalAddMonth from "./ModalAddMonth";
 import React, { useEffect, useState, useCallback } from "react";
-import ModalBudget from './ModalBudget';
-import IconPickerModal from "./IconPickerModal";
+//import IconPickerModal from "./IconPickerModal";
 import Recent from './RecentTransaction';
 import FilterTransaksi from './FilterTransaksi';
 import ChartKeuangan from './ChartKeuangan';
@@ -11,7 +10,7 @@ import ModalKategori from './ModalKategori';
 import ModalAkun from './ModalAkun';
 import { useNavigate } from 'react-router-dom';
 import DropdownAksi from "./DropdownButton";
-import { getTransactions, getBudgets, getCategories, deleteTransaction, deleteCategory, setBudget,createTransaction, updateTransaction, createCategory, updateCategory, createAccount, getAccounts} from './apiservice';
+import { getTransactions, getBudgets, getCategories, deleteTransaction, deleteCategory, setBudget,createTransaction, updateTransaction, createCategory, updateCategory, createAccount, getAccounts, updateAccount, deleteAccount} from './apiservice';
 
 function App() {
   const navigate = useNavigate();
@@ -24,30 +23,21 @@ function App() {
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [isCategoryModalOpen, setCategoryModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedAccount, setSelectedAccount] = useState(null);
+  const [editingBudgetId, setEditingBudgetId] = useState(null);
+  const [editingBudgetAmount, setEditingBudgetAmount] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [isModalAddMonthOpen, setIsModalAddMonthOpen] = useState(false);
+  const [selectedTab, setSelectedTab] = useState("Terkini");
+  const [selectedTabPendapatan, setSelectedTabPendapatan] = useState("Terkini");
+
   //Variabel
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
   });
-  const [isLoading, setIsLoading] = useState(true);
-  const [activeAddMonthTarget, setActiveAddMonthTarget] = useState(null);
-  const [isModalAddMonthOpen, setIsModalAddMonthOpen] = useState(false);
-  const [isModalOpen, setModalOpen] = useState(false);
-  const [showIconPicker, setShowIconPicker] = useState(false);
-  const [selectedIcon, setSelectedIcon] = useState(null);
-  const [iconTargetId, setIconTargetId] = useState(null);
-  const [selectedTab, setSelectedTab] = useState("Terkini");
-  const [selectedTabPendapatan, setSelectedTabPendapatan] = useState("Terkini");
-  const budgets = budgetsByMonth[selectedMonth] || [];
-  const Budgetperpage = 5;
-  const [currentBudget, setCurrentBudget] = useState(1);
-  const displayedBudgets = budgets.slice(0, currentBudget * Budgetperpage);
-  const hasMoreBudget = budgets.length > displayedBudgets.length;
-  
-  const [selectedItem, setSelectedItem] = useState(null); // bisa untuk akun atau budget
-  const [modalType, setModalType] = useState(null); // "budget" atau "akun"
-  const [iconTargetType, setIconTargetType] = useState(null);
-  
+
+ 
   //Fungsi atau Method
   const fetchData = useCallback(async () => {
     setIsLoading(true);
@@ -84,99 +74,37 @@ function App() {
     fetchData();
   }, [fetchData]);
 
-  const handleAddMonthWrapper = (newMonth) => {
-  // Cukup sisakan bagian untuk budget
-  if (activeAddMonthTarget === "budget") {
-    handleAddMonth(newMonth);
-  }
-  setIsModalAddMonthOpen(false);
-  };
-
-  const handleTransactionsChange = (updatedRows) => {
-    setTransactions(updatedRows);
-  };
-
-  const handlePendaptanChange = (updatedRows) => {
-    setPendapatan(updatedRows);
-  };
-
-  // Kode handleIconSelect yang sudah diperbaiki
-const handleIconSelect = (iconPath) => {
-  setShowIconPicker(false);
-  setSelectedIcon(iconPath);
-
-  // Kita hanya mempertahankan logika untuk 'budget'
-  if (iconTargetId !== null && iconTargetType === "budget") {
-    setBudgetsByMonth((prev) => ({
-      ...prev,
-      [selectedMonth]: prev[selectedMonth].map((b) =>
-        b.id === iconTargetId ? { ...b, icon: iconPath } : b
-      ),
-    }));
-  }
-
-  // Reset target setelah selesai
-  setIconTargetId(null);
-  setIconTargetType(null);
-};
-
-  function handleAddMonth(newMonth) {
+ function handleAddMonth(newMonth) {
   if (budgetsByMonth[newMonth]) {
     alert("Maaf, bulan sudah ada!");
     return;
-   }
-
-    setBudgetsByMonth(prev => ({
-     ...prev,
-     [newMonth]: []
-    }));
-    setSelectedMonth(newMonth);
-    setModalOpen(false);
   }
-    {/*function handleAddMonthAkun(newMonth) {
-    if (AkunByMonth[newMonth]) {
-      alert("Maaf, bulan sudah ada!");
-      return;
-    }*/}
+  // Tambahkan bulan baru dengan data kosong, lalu pilih bulan tersebut
+  setBudgetsByMonth(prev => ({
+    ...prev,
+    [newMonth]: []
+  }));
+  setSelectedMonth(newMonth);
+  setIsModalAddMonthOpen(false); // Tutup modal setelah selesai
+}
 
-  
-  const handleAddBudget = () => {
-  setSelectedItem(null);
-  setModalType("budget");
-  setModalOpen(true);
+ const handleSaveBudget = async (categoryId, amount) => {
+  const [year, month] = selectedMonth.split('-');
+  try {
+    await setBudget({
+      category_id: categoryId,
+      amount: parseFloat(amount) || 0,
+      year: parseInt(year),
+      month: parseInt(month),
+    });
+    fetchData(); // Refresh data untuk menampilkan perubahan
+  } catch (error) {
+    console.error("Gagal simpan budget:", error);
+    alert(error.message);
+  } finally {
+    setEditingBudgetId(null); // Tutup mode edit
+  }
 };
-
-  const handleEdit = (item, type) => {
-  setSelectedItem(item);
-  setModalType(type);
- // if (type === "budget") {
-    //const akunList = AkunByMonth[selectedMonth] || [];
-    // Salin akun dan kurangi used sementara jika item sedang diedit
-   // const akunTemp = akunList.map((akun) => {
-   //   const dikurang = item?.akunDipakai?.[akun.name] || 0;
-   //   return {
-    //    ...akun,
-   //     used: (akun.used || 0) - dikurang,
-    //  };
-   // });
-  //  setAkunSementara(akunTemp); // ← pakai di sini
- // }
-  setModalOpen(true);
-};
-  
- const handleSaveBudget = async (data) => {
-    try {
-        // Data dari modal harus mengandung: category_id, amount, year, month
-        await setBudget(data);
-        fetchData(); // Refresh data
-        setModalOpen(false); // Tutup modal
-        alert('Budget berhasil disimpan');
-    } catch (error) {
-        console.error("Gagal simpan budget:", error);
-        alert(error.message);
-    }
-};
-
   const handleDeleteTransaction = async (transactionId) => {
   if (window.confirm("Anda yakin ingin menghapus transaksi ini?")) {
     try {
@@ -249,34 +177,75 @@ const handleIconSelect = (iconPath) => {
 
   const handleSaveCategory = async (data) => {
     try {
-      if (data.id) {
-        // Mode UPDATE
-        await updateCategory(data.id, { name: data.name });
-      } else {
-        // Mode CREATE
-        await createCategory({ name: data.name });
+    if (data.id) {
+      // MODE EDIT: Hanya update nama kategori
+      await updateCategory(data.id, { name: data.name });
+      alert('Nama kategori berhasil diupdate!');
+
+    } else {
+      // MODE TAMBAH BARU:
+      // Langkah 1: Buat kategori baru dan dapatkan ID-nya
+      const newCategory = await createCategory({ name: data.name });
+
+      // Langkah 2: Jika user memasukkan jumlah budget, set budget untuk kategori baru tersebut
+      if (data.amount > 0) {
+        const [year, month] = selectedMonth.split('-');
+        await setBudget({
+          category_id: newCategory.id,
+          amount: data.amount,
+          year: parseInt(year),
+          month: parseInt(month),
+        });
       }
-      setCategoryModalOpen(false);
-      fetchData(); // Refresh data
-      alert('Kategori berhasil disimpan!');
-    } catch (error) {
-      console.error('Gagal menyimpan kategori:', error);
-      alert(error.message);
+      alert('Kategori baru berhasil ditambahkan!');
     }
-  };
+
+    setCategoryModalOpen(false);
+    fetchData(); // Selalu refresh data setelah berhasil
+
+  } catch (error) {
+    console.error('Gagal menyimpan kategori:', error);
+    alert(error.message);
+  }
+};
   const [isAccountModalOpen, setAccountModalOpen] = useState(false);
 
   const handleOpenAddAccountModal = () => setAccountModalOpen(true);
 
   const handleSaveAccount = async (data) => {
     try {
-      await createAccount(data);
+      if (data.id) { // Jika ada id, berarti edit
+        await updateAccount(data.id, data);
+      } else { // Jika tidak, tambah baru
+        await createAccount(data);
+      }
       setAccountModalOpen(false);
       fetchData();
-      alert('Akun baru berhasil ditambahkan!');
+      alert('Akun berhasil disimpan!');
     } catch (error) {
       alert(error.message);
     }
+  };
+  const handleDeleteAccount = async (accountId) => {
+  if(window.confirm('Yakin ingin menghapus akun ini? Aksi ini tidak bisa dibatalkan.')){
+    try {
+      await deleteAccount(accountId);
+      fetchData();
+      alert('Akun berhasil dihapus.');
+    } catch (error) {
+      alert(error.message);
+    }
+  }
+}
+const handleOpenEditAccountModal = (account) => {
+  setSelectedAccount(account); // Simpan data akun yang dipilih
+  setAccountModalOpen(true);   // Buka modal akun
+};
+const handleLogout = () => {
+    // Hapus token dari penyimpanan browser
+    localStorage.removeItem('userToken');
+    // Arahkan pengguna ke halaman login
+    navigate('/');
   };
   const CircularProgress = ({ percentage }) => {
     const pct = Number(percentage); // pastikan tipe number
@@ -344,6 +313,12 @@ const handleIconSelect = (iconPath) => {
         <h1 className="font-semibold text-white mb-4 text-4xl md:text-6xl lg:text-7xl">
           KeuanganKu
         </h1>
+        <button
+          onClick={handleLogout}
+          className="absolute top-4 right-4 bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg shadow"
+        >
+          Logout
+        </button>
       </div>
       <div className="flex justify-center mt-5">
         <div className="inline-flex rounded-full overflow-hidden shadow-md border border-gray-500">
@@ -377,7 +352,6 @@ const handleIconSelect = (iconPath) => {
                   const val = e.target.value;
                   if (val === "add_new") {
                     setIsModalAddMonthOpen(true);
-                    setActiveAddMonthTarget("budget");
                   } else {
                     setSelectedMonth(val);
                   }
@@ -396,10 +370,10 @@ const handleIconSelect = (iconPath) => {
             </div>
             <div className="flex flex-wrap gap-3 py-1 w-full">
               {(budgetsByMonth[selectedMonth] || []).map((item) => {
-                  // Gunakan properti 'amount' dan 'used' dari API
-                  const budgetAmount = parseFloat(item.amount) || 0;
-                  const usedAmount = parseFloat(item.used) || 0;
-                  const percentage = budgetAmount > 0 ? (usedAmount / budgetAmount) * 100 : 0;
+                const budgetAmount = parseFloat(item.amount) || 0;
+                const usedAmount = parseFloat(item.used) || 0;
+                const percentage = budgetAmount > 0 ? (usedAmount / budgetAmount) * 100 : 0;
+                const isEditing = editingBudgetId === item.category_id;
   
                 return (
                   <div
@@ -410,37 +384,6 @@ const handleIconSelect = (iconPath) => {
                       <div className="flex flex-row">
                         <div className="flex flex-wrap items-center w-5/6">
                           {/* Icon Picker */}
-                          <div>
-                            <div
-                              className={`w-6 h-6 rounded-full border cursor-pointer flex items-center justify-center mr-2 ${
-                                item.icon ? "border-none" : "bg-gray-300"
-                              }`}
-                              onClick={() => {
-                                setIconTargetType("budget");
-                                setIconTargetId(item.id);
-                                setShowIconPicker(true);
-                              }}
-                            >
-                              {item.icon ? (
-                                <img
-                                  src={item.icon}
-                                  alt="Selected Icon"
-                                  className="w-full h-full object-cover rounded-full"
-                                />
-                              ) : (
-                                <span className="text-gray-500">+</span>
-                              )}
-                            </div>
-                            {showIconPicker && (
-                              <IconPickerModal
-                                onSelect={(icon) => {
-                                  console.log("Icon saat ini:", selectedIcon);
-                                  handleIconSelect(icon);
-                                }}
-                                onClose={() => setShowIconPicker(false)}
-                              />
-                            )}
-                          </div>
                           <span className="text-[10px] text-left 
                             md:text-[10px] 
                             lg:text-[10px]
@@ -449,30 +392,32 @@ const handleIconSelect = (iconPath) => {
                             {item.category_name}
                           </span>
                         </div>
-                        <div className="w-1/6 flex justify-end items-start">
-                          <button
-                            onClick={() => handleOpenEditCategoryModal(item)}
-                            className="text-gray-500 text-[10px] hover:text-gray-700 ml-auto mr-2"
-                          >
-                            edit
-                          </button>
-                          <button
-                            onClick={() => handleHapusKategori(item.category_id)}
-                            className="text-gray-500 text-[10px] hover:text-gray-700"
-                          >
-                            X
-                          </button>
-                        </div>
+                        <DropdownAksi
+                            onEdit={() => handleOpenEditCategoryModal(item)}
+                            onDelete={() => handleHapusKategori(item.category_id)}
+                        />
                       </div>
-                      <div className="text-[11px] mt-1 w-fit relative group inline-block cursor-pointer">
-                        Rp.{budgetAmount.toLocaleString()}
-                        <div className="absolute left-full top-1/2 ml-2 -translate-y-1/2
-                            bg-gray-500 text-white text-[11px] px-2 py-1 rounded 
-                            opacity-0 group-hover:opacity-100 transition-all duration-200 
-                            whitespace-nowrap z-10
-                            pointer-events-none">
-                          Jumlah 
-                        </div>
+                      <div className="text-[11px] mt-1 w-fit relative group inline-block">
+                          {isEditing ? (
+                              <input
+                                  type="number"
+                                  value={editingBudgetAmount}
+                                  onChange={(e) => setEditingBudgetAmount(e.target.value)}
+                                  onBlur={() => handleSaveBudget(item.category_id, editingBudgetAmount)}
+                                  onKeyDown={(e) => { if (e.key === 'Enter') handleSaveBudget(item.category_id, editingBudgetAmount) }}
+                                  autoFocus
+                                  className="w-24 border-b-2 border-blue-500 outline-none"
+                              />
+                          ) : (
+                              <span onClick={() => {
+                                  setEditingBudgetId(item.category_id);
+                                  setEditingBudgetAmount(budgetAmount);
+                              }}
+                              className="cursor-pointer"
+                              >
+                                  Rp {budgetAmount.toLocaleString('id-ID')}
+                              </span>
+                          )}
                       </div>
                       <div className="flex flex-row gap-1 items-center relative w-fit group cursor-pointer">
                         <div className="text-[11px]">
@@ -500,14 +445,6 @@ const handleIconSelect = (iconPath) => {
                     + Tambah Kategori
                   </button>
             </div>
-            {hasMoreBudget && (
-              <button
-                onClick={() => setCurrentBudget(prev => prev + 1)}
-                className="bg-gray-300 text-gray-800 text-sm px-3 py-1 rounded hover:bg-gray-400 mt-3"
-              >
-                Tampilkan lebih banyak...
-              </button>
-            )}
           </div>
           {/*Tampilan Konten Kedua bagian kiri */}
             <h1 className="bg-gray-500 rounded-md text-[13px] md:text-base lg:text-lg font-bold text-white px-2 w-3/4">
@@ -523,8 +460,8 @@ const handleIconSelect = (iconPath) => {
                                 <span className="text-sm font-medium text-gray-800">{account.name}</span>
                                 {/* DropdownAksi untuk Akun (fungsi edit/hapus bisa ditambahkan nanti) */}
                                 <DropdownAksi
-                                    onEdit={() => alert(`Edit Akun: ${account.name}`)}
-                                    onDelete={() => alert(`Hapus Akun: ${account.name}`)}
+                                    onEdit={() => handleOpenEditAccountModal(account)}
+                                    onDelete={() => handleDeleteAccount(account.id)}
                                 />
                            </div>
                            <span className="text-sm font-semibold text-gray-900">
@@ -577,7 +514,7 @@ const handleIconSelect = (iconPath) => {
                 budgets={budgetsByMonth} // atau tetap budgetsByMonth kalau mau
                 akun={null}
                 transactions={transactions}          // <-- pakai data Pendapatan
-                onRowsChange={handleTransactionsChange}  // <-- pakai handler Pendapatan
+                  // <-- pakai handler Pendapatan
                 type={"Budget"}
                 onDelete={handleDeleteTransaction}
                 onEdit={handleOpenEditTransactionModal}
@@ -590,7 +527,7 @@ const handleIconSelect = (iconPath) => {
                 tab={"Harian"}
                 transactions={transactions} // <-- DIPERBAIKI
                 setTransactions={setTransactions} // <-- DIPERBAIKI
-                onRowsChange={handleTransactionsChange} // <-- DIPERBAIKI
+                 // <-- DIPERBAIKI
                 type={"Budget"}
                 onDelete={handleDeleteTransaction}
                 onEdit={handleOpenEditTransactionModal}
@@ -603,7 +540,7 @@ const handleIconSelect = (iconPath) => {
                 tab={"Bulanan"}
                 transactions={transactions} // <-- DIPERBAIKI
                 setTransactions={setTransactions} // <-- DIPERBAIKI
-                onRowsChange={handleTransactionsChange} // <-- DIPERBAIKI
+                 // <-- DIPERBAIKI
                 type={"Budget"}
                 onDelete={handleDeleteTransaction}
                 onEdit={handleOpenEditTransactionModal}
@@ -616,7 +553,7 @@ const handleIconSelect = (iconPath) => {
                 tab={"Tahunan"}
                 transactions={transactions} // <-- DIPERBAIKI
                 setTransactions={setTransactions} // <-- DIPERBAIKI
-                onRowsChange={handleTransactionsChange} // <-- DIPERBAIKI
+                 // <-- DIPERBAIKI
                 type={"Budget"}
                 onDelete={handleDeleteTransaction}
                 onEdit={handleOpenEditTransactionModal}
@@ -654,7 +591,7 @@ const handleIconSelect = (iconPath) => {
                   budgets={null}
                   akun={null} // <-- Diperbaiki
                   transactions={pendapatan} // <-- Diperbaiki (p kecil)
-                  onRowsChange={handlePendaptanChange}
+                  
                   onDelete={handleDeleteTransaction}
                   onEdit={handleOpenEditTransactionModal}
                   type={"Akun"}
@@ -667,7 +604,7 @@ const handleIconSelect = (iconPath) => {
                   tab={"Harian"}
                   transactions={pendapatan} // <-- Diperbaiki (p kecil)
                   setTransactions={setPendapatan}
-                  onRowsChange={handlePendaptanChange}
+                  
                   type={"Akun"}
                   onDelete={handleDeleteTransaction}
                   />
@@ -679,7 +616,7 @@ const handleIconSelect = (iconPath) => {
                   tab={"Bulanan"}
                   transactions={pendapatan} // <-- Diperbaiki (p kecil)
                   setTransactions={setPendapatan}
-                  onRowsChange={handlePendaptanChange}
+                  
                   type={"Akun"}
                   onDelete={handleDeleteTransaction}
                   />
@@ -691,7 +628,7 @@ const handleIconSelect = (iconPath) => {
                   tab={"Tahunan"}
                   transactions={pendapatan} // <-- Diperbaiki (p kecil)
                   setTransactions={setPendapatan}
-                  onRowsChange={handlePendaptanChange}
+                  
                   type={"Akun"}
                   onDelete={handleDeleteTransaction}
                   />
@@ -718,21 +655,11 @@ const handleIconSelect = (iconPath) => {
           
       
         {/* Modal */}
-        <ModalBudget
-          isOpen={isModalOpen}
-          onClose={() => {
-            setModalOpen(false);
-            setSelectedItem(null);
-            setSelectedIcon(null);
-          }}
-          initialData={selectedItem}
-          onSave={handleSaveBudget}
-          type={modalType}
-        />
+
         <ModalAddMonth
                     isOpen={isModalAddMonthOpen}
                     onClose={() => setIsModalAddMonthOpen(false)}
-                    onAddMonth={handleAddMonthWrapper}
+                    onAddMonth={handleAddMonth}
         />
         <ModalTransaksi
         isOpen={isTransactionModalOpen}
@@ -752,6 +679,7 @@ const handleIconSelect = (iconPath) => {
         isOpen={isAccountModalOpen}
         onClose={() => setAccountModalOpen(false)}
         onSave={handleSaveAccount}
+        initialData={selectedAccount}
       />
     </div>
   );

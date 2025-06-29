@@ -52,19 +52,19 @@ const ModalTransaksi = ({ isOpen, onClose, onSave, initialData = null, categorie
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!formData.description || !formData.amount || !formData.transaction_date || !formData.category_id|| !formData.account_id) {
-      setError('Harap isi semua field, termasuk Akun.');
+    if (!formData.description || !formData.amount || !formData.transaction_date || !formData.account_id) {
+      setError('Harap isi Deskripsi, Jumlah, Akun, dan Tanggal.');
       return;
     }
-    // Jika tipe 'expense', kategori wajib diisi
+    // Kategori hanya wajib jika tipenya 'expense'
     if (formData.type === 'expense' && !formData.category_id) {
         setError('Kategori wajib diisi untuk pengeluaran.');
         return;
     }
     setError('');
-    // Kirim data kembali ke HalamanUtama.js untuk disimpan ke database
+    // Kirim data. Jika 'income', category_id akan kosong, backend akan handle sbg NULL.
     onSave({ ...formData, id: initialData?.id });
-  };
+};
 
   if (!isOpen) return null;
 
@@ -105,29 +105,22 @@ const ModalTransaksi = ({ isOpen, onClose, onSave, initialData = null, categorie
                 ))}
               </select>
           </div>
+          {formData.type === 'expense' && (
           <div>
-            <label className="block text-sm font-medium text-gray-700">Kategori</label>
-            <select
-              name="category_id" value={formData.category_id}
-              onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              required
-            >
-              <option value="">Pilih Kategori</option>
-              {categories.map(cat => (
-                <option key={cat.id} value={cat.id}>{cat.name}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Tanggal</label>
-            <input
-              type="date" name="transaction_date" value={formData.transaction_date}
-              onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              required
-            />
-          </div>
+              <label className="block text-sm font-medium text-gray-700">Kategori</label>
+              <select
+                name="category_id" value={formData.category_id}
+                onChange={handleChange}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+                required // Atribut required ini penting untuk pengeluaran
+              >
+                <option value="">Pilih Kategori</option>
+                {categories.map(cat => (
+                  <option key={cat.id} value={cat.id}>{cat.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
           {error && <p className="text-sm text-red-600">{error}</p>}
           <div className="flex justify-end space-x-2 pt-2">
             <button type="button" className="bg-gray-200 px-4 py-2 rounded-md" onClick={onClose}>

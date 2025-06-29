@@ -67,8 +67,26 @@ export const setBudget = (data) => apiFetch('/budgets', {
 });
 
 // --- ACCOUNTS ---
+export const updateAccount = (id, data) => apiFetch(`/accounts/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+export const deleteAccount = (id) => apiFetch(`/accounts/${id}`, { method: 'DELETE' });
 export const getAccounts = () => apiFetch('/accounts');
 export const createAccount = (data) => apiFetch('/accounts', {
   method: 'POST',
   body: JSON.stringify(data),
+});
+// --- DEBTS ---
+export const getDebts = () => apiFetch('/debts');
+
+export const createDebt = (data) => apiFetch('/debts', {
+  method: 'POST',
+  body: JSON.stringify(data),
+});
+
+export const deleteDebt = (id) => apiFetch(`/debts/${id}`, {
+  method: 'DELETE',
+});
+
+// Menggunakan PATCH untuk update status
+export const markDebtAsPaid = (id) => apiFetch(`/debts/${id}/status`, {
+  method: 'PATCH',
 });

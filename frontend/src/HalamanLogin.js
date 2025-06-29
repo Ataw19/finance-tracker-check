@@ -14,7 +14,7 @@ const Welcome = () => {
     setError(null);
     try {
       const data = await login(username, password);
-      localStorage.setItem('token', data.token);
+      localStorage.setItem('userToken', data.token);
       navigate('/app');
     } catch (err) {
       setError(err.message);
@@ -92,19 +92,6 @@ const Welcome = () => {
                   Masuk
               </motion.button>
           </form>
-            {error && (
-                <p className="text-sm text-red-500 text-center">{error}</p>
-            )}
-
-            <motion.button
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.95 }}
-                type="submit"
-                className="w-full ..."
-            >
-                Masuk
-            </motion.button>
-
             <div
               onClick={() => navigate('/register')}
               className="text-center text-sm text-gray-400 hover:text-gray-600 cursor-pointer"

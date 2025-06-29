@@ -1,15 +1,16 @@
-// src/ModalKategori.js
-
 import React, { useState, useEffect } from 'react';
 
 const ModalKategori = ({ isOpen, onClose, onSave, initialData = null }) => {
   const [name, setName] = useState('');
-
+  const [amount, setAmount] = useState('');
   useEffect(() => {
     if (isOpen) {
       // Jika mode edit, isi input dengan nama yang ada. Jika tidak, kosongkan.
       setName(initialData ? initialData.name : '');
-    }
+    }else {
+        setName('');
+        setAmount('');
+      }
   }, [initialData, isOpen]);
 
   const handleSubmit = (e) => {
@@ -17,7 +18,9 @@ const ModalKategori = ({ isOpen, onClose, onSave, initialData = null }) => {
     if (!name.trim()) return; // Jangan simpan jika nama kosong
     
     // Kirim data kembali ke HalamanUtama
-    onSave({ id: initialData?.id, name });
+    onSave({ id: initialData?.id, 
+      name, 
+      amount: parseFloat(amount) || 0  });
   };
 
   if (!isOpen) return null;
@@ -36,6 +39,19 @@ const ModalKategori = ({ isOpen, onClose, onSave, initialData = null }) => {
             required
             autoFocus
           />
+          {/* HANYA TAMPILKAN INPUT INI JIKA BUKAN MODE EDIT */}
+          {!initialData && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Jumlah Budget Awal (Opsional)</label>
+              <input
+                type="number"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
+                placeholder="Contoh: 500000"
+              />
+            </div>
+          )}
           <div className="flex justify-end space-x-2 pt-4">
             <button type="button" className="bg-gray-200 px-4 py-2 rounded-md" onClick={onClose}>
               Batal

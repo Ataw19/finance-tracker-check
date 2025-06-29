@@ -1,13 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const ModalAkun = ({ isOpen, onClose, onSave }) => {
+const ModalAkun = ({ isOpen, onClose, onSave, initialData }) => {
   const [name, setName] = useState('');
   const [balance, setBalance] = useState(0);
+
+  useEffect(() => {
+    if (isOpen) {
+      if (initialData) {
+        // Jika mode edit, isi form
+        setName(initialData.name);
+        setBalance(initialData.balance);
+      } else {
+        // Jika mode tambah, kosongkan form
+        setName('');
+        setBalance(0);
+      }
+    }
+  }, [initialData, isOpen]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!name.trim()) return;
-    onSave({ name, balance, type: 'General' }); // Kirim data ke parent
+    // Kirim data kembali, sertakan ID jika ini mode edit
+    onSave({ id: initialData?.id, name, balance, type: 'General' });
   };
 
   if (!isOpen) return null;
