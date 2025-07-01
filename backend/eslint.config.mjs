@@ -14,7 +14,7 @@ export default [
       sourceType: "module",  // Izinkan penggunaan 'import'/'export'
       globals: {
         ...globals.node, // Izinkan variabel global Node.js (seperti 'require', 'process')
-        ...globals.browser, // Izinkan variabel global browser (seperti 'window', 'document')
+        // Kita hapus '...globals.browser' karena tidak diperlukan di backend
       }
     },
     
@@ -29,4 +29,3 @@ export default [
     },
   }
 ];
-// Catatan: Konfigurasi ini menggunakan format "flat config" yang baru dari ESLint.
