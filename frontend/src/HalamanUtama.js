@@ -132,11 +132,6 @@ function App() {
     }
   }
 };
-    // Untuk membuka modal dalam mode 'tambah'
-  const handleOpenAddTransactionModal = (type = 'expense') => {
-    setSelectedTransaction({ type }); // Kosongkan data, karena ini mode tambah baru
-    setTransactionModalOpen(true);
-  };
 
   // Untuk membuka modal dalam mode 'edit'
   const handleOpenEditTransactionModal = (transaction) => {
