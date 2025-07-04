@@ -14,6 +14,7 @@ const getBudgets = async (req, res) => {
       SELECT 
         c.id as category_id, 
         c.name as category_name,
+        c.icon_path,
         b.id as budget_id,
         b.amount,
         (SELECT SUM(t.amount) 

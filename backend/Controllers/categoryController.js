@@ -41,14 +41,32 @@ const createCategory = async (req, res) => {
 // @route   PUT /api/categories/:id
 // @access  Private
 const updateCategory = async (req, res) => {
-  const { name } = req.body;
+  const { name, icon_path } = req.body;
   const { id } = req.params;
 
+  // Membangun query secara dinamis
+  let fieldsToUpdate = [];
+  let values = [];
+
+  if (name) {
+    fieldsToUpdate.push('name = ?');
+    values.push(name);
+  }
+  if (icon_path) {
+    fieldsToUpdate.push('icon_path = ?');
+    values.push(icon_path);
+  }
+
+  // Jika tidak ada data yang dikirim, jangan lakukan apa-apa
+  if (fieldsToUpdate.length === 0) {
+    return res.status(400).json({ message: 'Tidak ada data untuk diupdate' });
+  }
+
+  values.push(id, req.user.id);
+
   try {
-    const [result] = await pool.query(
-      'UPDATE categories SET name = ? WHERE id = ? AND user_id = ?',
-      [name, id, req.user.id]
-    );
+    const query = `UPDATE categories SET ${fieldsToUpdate.join(', ')} WHERE id = ? AND user_id = ?`;
+    const [result] = await pool.query(query, values);
 
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: 'Kategori tidak ditemukan' });
@@ -59,6 +77,7 @@ const updateCategory = async (req, res) => {
     res.status(500).json({ message: 'Server Error' });
   }
 };
+
 
 // @desc    Delete a category
 // @route   DELETE /api/categories/:id

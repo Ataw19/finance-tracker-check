@@ -1,5 +1,3 @@
-// backend/controllers/accountController.js
-
 const pool = require('../db');
 
 // @desc    Get all accounts for a user

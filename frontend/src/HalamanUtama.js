@@ -1,7 +1,7 @@
 
 import ModalAddMonth from "./ModalAddMonth";
 import React, { useEffect, useState, useCallback } from "react";
-//import IconPickerModal from "./IconPickerModal";
+import IconPickerModal from "./IconPickerModal";
 import Recent from './RecentTransaction';
 import FilterTransaksi from './FilterTransaksi';
 import ChartKeuangan from './ChartKeuangan';
@@ -30,7 +30,8 @@ function App() {
   const [isModalAddMonthOpen, setIsModalAddMonthOpen] = useState(false);
   const [selectedTab, setSelectedTab] = useState("Terkini");
   const [selectedTabPendapatan, setSelectedTabPendapatan] = useState("Terkini");
-
+  const [isIconPickerOpen, setIconPickerOpen] = useState(false);
+  const [iconTargetCategory, setIconTargetCategory] = useState(null);
   //Variabel
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const d = new Date();
@@ -284,6 +285,26 @@ const handleLogout = () => {
     );
   };
 
+// Fungsi untuk membuka modal pemilih ikon
+const handleOpenIconPicker = (category) => {
+    setIconTargetCategory(category); // Simpan info kategori mana yang akan diubah ikonnya
+    setIconPickerOpen(true);
+};
+
+// Fungsi yang dipanggil setelah ikon dipilih dari modal
+const handleIconSelect = async (iconPath) => {
+    if (!iconTargetCategory) return;
+    try {
+        // Panggil API untuk update ikon di database
+        await updateCategory(iconTargetCategory.category_id, { icon_path: iconPath });
+        setIconPickerOpen(false); // Tutup modal
+        fetchData(); // Refresh data untuk menampilkan ikon baru
+    } catch (error) {
+        console.error("Gagal update ikon:", error);
+        alert(error.message);
+    }
+};
+
   function formatMonth(monthStr) {
   // monthStr: "2024-01"
   const [year, month] = monthStr.split("-");
@@ -310,7 +331,7 @@ const handleLogout = () => {
         </h1>
         <button
           onClick={handleLogout}
-          className="absolute top-4 right-4 bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg shadow"
+          className="absolute top-4 right-4 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg shadow"
         >
           Logout
         </button>
@@ -378,14 +399,19 @@ const handleLogout = () => {
                     <div className="bg-white border rounded-xl px-2 py-1 gap-1 flex flex-col w-full border-gray-300">
                       <div className="flex flex-row">
                         <div className="flex flex-wrap items-center w-5/6">
-                          {/* Icon Picker */}
-                          <span className="text-[10px] text-left 
-                            md:text-[10px] 
-                            lg:text-[10px]
-                            xl:text-[11px]
-                            2xl:text-[12px]">
-                            {item.category_name}
-                          </span>
+                          <div
+                              className="w-8 h-8 rounded-full border bg-gray-200 flex items-center justify-center cursor-pointer mr-2 flex-shrink-0"
+                              onClick={() => handleOpenIconPicker(item)}
+                              title="Ubah Ikon"
+                            >
+                                {item.icon_path ? (
+                                    <img src={item.icon_path} alt={item.category_name} className="w-full h-full object-cover rounded-full" />
+                                ) : (
+                                    // Tampilkan '+' jika tidak ada ikon
+                                    <span className="text-gray-500 text-xl font-light">+</span>
+                                )}
+                            </div>
+                            <span className="text-sm">{item.category_name}</span>
                         </div>
                         <DropdownAksi
                             onEdit={() => handleOpenEditCategoryModal(item)}
@@ -676,6 +702,12 @@ const handleLogout = () => {
         onSave={handleSaveAccount}
         initialData={selectedAccount}
       />
+      {isIconPickerOpen && (
+        <IconPickerModal
+            onClose={() => setIconPickerOpen(false)}
+            onSelect={handleIconSelect}
+        />
+    )}
     </div>
   );
 }

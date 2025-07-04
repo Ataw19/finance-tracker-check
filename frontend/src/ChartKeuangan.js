@@ -24,12 +24,22 @@ const ChartKeuangan = ({ transactions, type }) => {
 
   // 2. Kelompokkan total berdasarkan nama kategori (tidak ada perubahan di sini)
   const categoryTotals = useMemo(() => {
+    // Jika tipe adalah PENDAPATAN, kelompokkan berdasarkan NAMA AKUN
+    if (type === 'income') {
+        return filtered.reduce((acc, tx) => {
+            const label = tx.account_name || "Tidak Diketahui"; // Gunakan nama akun sebagai label
+            acc[label] = (acc[label] || 0) + (Number(tx.amount) || 0);
+            return acc;
+        }, {});
+    }
+
+    // Jika tidak, berarti PENGELUARAN, kelompokkan berdasarkan NAMA KATEGORI
     return filtered.reduce((acc, tx) => {
-      const label = tx.category_name || "Lain-lain";
-      acc[label] = (acc[label] || 0) + (Number(tx.amount) || 0);
-      return acc;
+        const label = tx.category_name || "Lain-lain";
+        acc[label] = (acc[label] || 0) + (Number(tx.amount) || 0);
+        return acc;
     }, {});
-  }, [filtered]);
+}, [filtered, type]);
 
   const data = useMemo(() => {
     // Label untuk sumbu bawah (hanya satu, misal: "Total")

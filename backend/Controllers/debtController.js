@@ -1,4 +1,3 @@
-// backend/controllers/debtController.js
 const pool = require('../db');
 
 // @desc    Get all debts for a user

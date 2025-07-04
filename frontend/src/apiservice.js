@@ -72,6 +72,7 @@ export const createAccount = (data) => apiFetch('/accounts', {
   method: 'POST',
   body: JSON.stringify(data),
 });
+
 // --- DEBTS ---
 export const getDebts = () => apiFetch('/debts');
 
