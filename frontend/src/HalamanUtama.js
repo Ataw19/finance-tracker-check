@@ -327,7 +327,7 @@ const handleIconSelect = async (iconPath) => {
   
       <div className="w-full bg-gray-700 shadow-md text-center py-9 md:py-32 lg:py-32">
         <h1 className="font-semibold text-white mb-4 text-4xl md:text-6xl lg:text-7xl">
-          KeuanganKu
+          DuitKu
         </h1>
         <button
           onClick={handleLogout}
