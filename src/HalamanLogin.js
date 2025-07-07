@@ -1,20 +1,16 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-<<<<<<< HEAD
-
-=======
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 const config = {
   headers: {
-    Authorization: `Bearer ${token_anda_dari_local_storage}`
-  }
+    Authorization: `Bearer ${token_anda_dari_local_storage}`,
+  },
 };
 
-const { data } = await axios.get('/api/transactions', config);
->>>>>>> master
+const { data } = await axios.get("/api/transactions", config);
 const Welcome = () => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [errorField, setErrorField] = useState(null); // "username" | "password" | null
 
   const navigate = useNavigate();
@@ -22,22 +18,18 @@ const Welcome = () => {
   const handleLogin = (e) => {
     e.preventDefault();
 
-    if (username !== 'admin') {
-      setErrorField('username');
+    if (username !== "admin") {
+      setErrorField("username");
       return;
     }
 
-    if (password !== '1234') {
-      setErrorField('password');
+    if (password !== "1234") {
+      setErrorField("password");
       return;
     }
 
     setErrorField(null);
-<<<<<<< HEAD
-    navigate('/Dashboard');
-=======
-    navigate('/app');
->>>>>>> master
+    navigate("/app");
   };
 
   return (
@@ -65,7 +57,9 @@ const Welcome = () => {
             className="space-y-6"
           >
             <h2 className="text-3xl font-bold text-gray-700">Log In</h2>
-            <p className="text-gray-500">Login your account to start the service</p>
+            <p className="text-gray-500">
+              Login your account to start the service
+            </p>
 
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
@@ -75,12 +69,16 @@ const Welcome = () => {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   className={`w-full px-4 py-2 rounded-md border ${
-                    errorField === 'username' ? 'border-red-500' : 'border-gray-300'
+                    errorField === "username"
+                      ? "border-red-500"
+                      : "border-gray-300"
                   } bg-gray-100 focus:outline-none focus:ring-2 ${
-                    errorField === 'username' ? 'focus:ring-red-400' : 'focus:ring-gray-400'
+                    errorField === "username"
+                      ? "focus:ring-red-400"
+                      : "focus:ring-gray-400"
                   }`}
                 />
-                {errorField === 'username' && (
+                {errorField === "username" && (
                   <p className="text-sm text-red-500 mt-1">Username salah</p>
                 )}
               </div>
@@ -92,20 +90,24 @@ const Welcome = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className={`w-full px-4 py-2 rounded-md border ${
-                    errorField === 'password' ? 'border-red-500' : 'border-gray-300'
+                    errorField === "password"
+                      ? "border-red-500"
+                      : "border-gray-300"
                   } bg-gray-100 focus:outline-none focus:ring-2 ${
-                    errorField === 'password' ? 'focus:ring-red-400' : 'focus:ring-gray-400'
+                    errorField === "password"
+                      ? "focus:ring-red-400"
+                      : "focus:ring-gray-400"
                   }`}
                 />
-                {errorField === 'password' && (
+                {errorField === "password" && (
                   <p className="text-sm text-red-500 mt-1">Password salah</p>
                 )}
               </div>
 
               <div
-                onClick={() => navigate('/lupasandi')}
+                onClick={() => navigate("/lupasandi")}
                 className="text-right text-sm text-gray-400 hover:text-gray-600 cursor-pointer"
-                >
+              >
                 Lupa sandi?
               </div>
 
@@ -120,7 +122,7 @@ const Welcome = () => {
             </form>
 
             <div
-              onClick={() => navigate('/register')}
+              onClick={() => navigate("/register")}
               className="text-center text-sm text-gray-400 hover:text-gray-600 cursor-pointer"
             >
               Tidak punya akun? Daftar disini.

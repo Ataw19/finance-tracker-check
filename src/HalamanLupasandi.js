@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState } from "react";
+import { motion } from "framer-motion";
 
 const LupaSandi = () => {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
   const handleSubmit = (e) => {
@@ -13,15 +13,10 @@ const LupaSandi = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-gray-500 to-gray-700 transition-all duration-500">
-<<<<<<< HEAD
-      <div className="flex flex-col md:flex-row w-full max-w-6xl shadow-xl rounded-xl overflow-hidden ">
-=======
       <div className="flex flex-col md:flex-row w-full max-w-6xl shadow-xl rounded-xl overflow-hidden bg-gray-500">
->>>>>>> master
-
         {/* Left Background */}
         <motion.div
-          initial={{ x: '-100%' }}
+          initial={{ x: "-100%" }}
           animate={{ x: 0 }}
           transition={{ duration: 0.8 }}
           className="w-full md:w-1/4 bg-gradient-to-br from-black via-gray-500 to-gray-700 flex items-center justify-center "
@@ -36,8 +31,12 @@ const LupaSandi = () => {
           transition={{ delay: 0.4, duration: 0.6 }}
           className="w-full md:w-1/2 bg-white p-10"
         >
-          <h2 className="text-3xl font-bold text-gray-700 text-center">Lupa Sandi</h2>
-          <p className="text-sm text-gray-500 text-center mb-6">Masukkan email untuk reset kata sandi</p>
+          <h2 className="text-3xl font-bold text-gray-700 text-center">
+            Lupa Sandi
+          </h2>
+          <p className="text-sm text-gray-500 text-center mb-6">
+            Masukkan email untuk reset kata sandi
+          </p>
 
           <form onSubmit={handleSubmit} className="space-y-4 ">
             <input
@@ -72,7 +71,7 @@ const LupaSandi = () => {
 
         {/* Right Background */}
         <motion.div
-          initial={{ x: '100%' }}
+          initial={{ x: "100%" }}
           animate={{ x: 0 }}
           transition={{ duration: 0.8 }}
           className="w-full md:w-1/4 bg-gradient-to-bl from-black via-gray-500 to-gray-700 flex items-center justify-center"
