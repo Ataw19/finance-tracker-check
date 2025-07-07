@@ -13,7 +13,11 @@ const LupaSandi = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-gray-500 to-gray-700 transition-all duration-500">
+<<<<<<< HEAD
       <div className="flex flex-col md:flex-row w-full max-w-6xl shadow-xl rounded-xl overflow-hidden ">
+=======
+      <div className="flex flex-col md:flex-row w-full max-w-6xl shadow-xl rounded-xl overflow-hidden bg-gray-500">
+>>>>>>> master
 
         {/* Left Background */}
         <motion.div

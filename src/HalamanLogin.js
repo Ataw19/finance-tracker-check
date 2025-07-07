@@ -1,7 +1,17 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+<<<<<<< HEAD
 
+=======
+const config = {
+  headers: {
+    Authorization: `Bearer ${token_anda_dari_local_storage}`
+  }
+};
+
+const { data } = await axios.get('/api/transactions', config);
+>>>>>>> master
 const Welcome = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -23,7 +33,11 @@ const Welcome = () => {
     }
 
     setErrorField(null);
+<<<<<<< HEAD
     navigate('/Dashboard');
+=======
+    navigate('/app');
+>>>>>>> master
   };
 
   return (
