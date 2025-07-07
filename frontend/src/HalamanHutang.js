@@ -81,6 +81,11 @@ const navigate = useNavigate();
     }
   };
 
+  const handleLogout = () => {
+      localStorage.removeItem('userToken');
+      navigate('/');
+  };
+
   // Fungsi isDueSoon tidak perlu diubah
   const isDueSoon = (dateStr) => {
       // ...
@@ -93,10 +98,16 @@ const navigate = useNavigate();
 
   return (
     <div className="flex-col items-start justify-center min-h-screen bg-gray-200 pb-20">
-      <div className="w-full bg-gray-700 shadow-md text-center py-9 md:py-32 lg:py-32">
+        <div className="w-full bg-gray-700 shadow-md text-center py-9 md:py-32 lg:py-32">
         <h1 className="font-semibold text-white mb-4 text-4xl md:text-6xl lg:text-7xl">
-          KeuanganKu
+          DuitKu
         </h1>
+        <button
+          onClick={handleLogout}
+          className="absolute top-4 right-4 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg shadow"
+        >
+          Logout
+        </button>
       </div>
 
       <div className="flex justify-center mt-5">

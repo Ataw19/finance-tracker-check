@@ -8,6 +8,7 @@ const categoryRoutes = require('./routes/categories');
 const budgetRoutes = require('./routes/budgets');
 const transactionRoutes = require('./routes/transactions');
 const debtRoutes = require('./routes/debts');
+const { checkAndSendDebtReminders } = require('./scheduler.js');
 // Inisialisasi Aplikasi Express
 const app = express();
 
@@ -29,4 +30,8 @@ app.use('/api/debts', protect, debtRoutes);
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => console.log(`Server berjalan di port ${PORT}`));
+app.listen(PORT, () => {
+    console.log(`Server berjalan di port ${PORT}`);
+    // --- Jalankan pengecekan pengingat saat server dimulai dan jadwalkan ---
+    checkAndSendDebtReminders(); // Eksekusi pertama kali saat server startup
+});
