@@ -18,7 +18,6 @@
     "express": "^5.1.0",
     "framer-motion": "^12.18.1",
     "jsonwebtoken": "^9.0.2",
->>>>>>> master:frontend/package.json
     "lucide-react": "^0.511.0",
     "mysql2": "^3.14.1",
     "react": "^19.1.0",
