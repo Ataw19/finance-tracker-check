@@ -20,7 +20,11 @@ jobs:
           node-version: 20
 
       - name: 📦 Install dependencies
-        run: npm ci
+        run: npm install
+        working-directory: frontend
+
+      - name: 📦 Check if react-router-dom is installed
+        run: npm list react-router-dom
         working-directory: frontend
 
       - name: 🏗️ Build project
