@@ -1,20 +1,34 @@
 import React, { useState } from "react";
-import { Trash } from "lucide-react";
 
-function FilterTransaksi({ budgets, akun, tab, transactions, setTransactions, type, onDelete, onEdit }) {
+function FilterTransaksi({
+  budgets,
+  akun,
+  tab,
+  transactions,
+  setTransactions,
+  type,
+  onDelete,
+  onEdit,
+}) {
   const [expandedGroups, setExpandedGroups] = useState({});
   // Ubah default sortBy jika Anda tidak ingin lagi tanggal menjadi default
   // Misalnya, jika Anda ingin "Jumlah" menjadi default:
-  const [sortBy, setSortBy] = useState("amount"); 
+  const [sortBy, setSortBy] = useState("amount");
 
   const formatGroupKey = (dateStr) => {
     const date = new Date(dateStr);
     if (tab === "Harian") {
       return date.toLocaleDateString("id-ID", {
-        weekday: "long", day: "numeric", month: "long", year: "numeric"
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric",
       });
     } else if (tab === "Bulanan") {
-      return date.toLocaleDateString("id-ID", { month: "long", year: "numeric" });
+      return date.toLocaleDateString("id-ID", {
+        month: "long",
+        year: "numeric",
+      });
     } else if (tab === "Tahunan") {
       return date.getFullYear().toString();
     }
@@ -64,7 +78,9 @@ function FilterTransaksi({ budgets, akun, tab, transactions, setTransactions, ty
   return (
     <div className="mx-2">
       <div className="mb-4">
-        <label className="text-sm font-medium mr-2">Urutkan Berdasarkan : </label>
+        <label className="text-sm font-medium mr-2">
+          Urutkan Berdasarkan :{" "}
+        </label>
         <select
           className="text-sm border px-0 py-1 rounded bg-gray-200"
           value={sortBy}
@@ -102,8 +118,12 @@ function FilterTransaksi({ budgets, akun, tab, transactions, setTransactions, ty
                       <tr className="bg-gray-100">
                         <th className="px-2 py-1 border">Nama</th>
                         <th className="px-2 py-1 border">Jumlah</th>
-                        {type === "Budget" && <th className="px-2 py-1 border">Kategori</th>}
-                        {type === "Akun" && <th className="px-2 py-1 border">Akun</th>}
+                        {type === "Budget" && (
+                          <th className="px-2 py-1 border">Kategori</th>
+                        )}
+                        {type === "Akun" && (
+                          <th className="px-2 py-1 border">Akun</th>
+                        )}
                         <th className="px-2 py-1 border">Tanggal</th>
                         <th className="px-2 py-1 border"></th>
                       </tr>
@@ -111,12 +131,27 @@ function FilterTransaksi({ budgets, akun, tab, transactions, setTransactions, ty
                     <tbody>
                       {sortedItems.map((row) => (
                         <tr key={row.id}>
-                          <td className="px-2 py-1 border">{row.description}</td>
-                          <td className="px-2 py-1 border">Rp {Number(row.amount).toLocaleString('id-ID')}</td>
-                          {type === "Budget" && <td className="px-2 py-1 border">{row.category_name || "-"}</td>}
-                          {type === "Akun" && <td className="px-2 py-1 border">{row.account_name || "-"}</td>}
                           <td className="px-2 py-1 border">
-                            {new Date(row.transaction_date).toLocaleDateString("id-ID", { day: 'numeric', month: 'long', year: 'numeric' })}
+                            {row.description}
+                          </td>
+                          <td className="px-2 py-1 border">
+                            Rp {Number(row.amount).toLocaleString("id-ID")}
+                          </td>
+                          {type === "Budget" && (
+                            <td className="px-2 py-1 border">
+                              {row.category_name || "-"}
+                            </td>
+                          )}
+                          {type === "Akun" && (
+                            <td className="px-2 py-1 border">
+                              {row.account_name || "-"}
+                            </td>
+                          )}
+                          <td className="px-2 py-1 border">
+                            {new Date(row.transaction_date).toLocaleDateString(
+                              "id-ID",
+                              { day: "numeric", month: "long", year: "numeric" }
+                            )}
                           </td>
                           <td className="border px-2 py-1 text-center">
                             <button
