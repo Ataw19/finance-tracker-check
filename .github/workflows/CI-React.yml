@@ -28,5 +28,6 @@ jobs:
         working-directory: frontend
 
       - name: ✅ Run tests (optional)
-        run: npm test --if-present
+        run: NODE_PATH=./frontend/src npm test --if-present
         working-directory: frontend
+
