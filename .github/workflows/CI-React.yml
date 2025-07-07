@@ -26,8 +26,10 @@ jobs:
       - name: 🏗️ Build project
         run: npm run build
         working-directory: frontend
-
+        
       - name: ✅ Run tests (optional)
-        run: NODE_PATH=./frontend/src npm test --if-present
+        run: JEST_CONFIG=jest.config.js npm test --if-present
         working-directory: frontend
+        env:
+          NODE_PATH: ./src
 
